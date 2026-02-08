@@ -40,8 +40,6 @@ ros2 pkg executables turtlesim
 ### Шаг 1: Запуск симулятора
 **Терминал 1** - инициализация и запуск:
 ```bash
-# Инициализация окружения ROS 2
-source /opt/ros/humble/setup.bash
 
 # Запуск симулятора
 ros2 run turtlesim turtlesim_node
@@ -57,8 +55,6 @@ ros2 run turtlesim turtlesim_node
 ### Шаг 2: Запуск управления
 **Терминал 2** - управление черепахой:
 ```bash
-# Инициализация окружения ROS 2
-source /opt/ros/humble/setup.bash
 
 # Запуск управления с клавиатуры
 ros2 run turtlesim turtle_teleop_key
@@ -77,8 +73,6 @@ ros2 run turtlesim turtle_teleop_key
 ### 1. Изучение активных узлов
 ```bash
 # В Терминале 3 (новый терминал)
-source /opt/ros/humble/setup.bash
-
 # Список активных узлов
 ros2 node list
 
