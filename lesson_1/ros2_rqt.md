@@ -31,8 +31,7 @@ sudo apt install '~nros-humble-rqt*'
 rqt
 ```
 
-**[Изображение: Пустое окно rqt при первом запуске]**
-*(https://docs.ros.org/en/humble/_images/rqt.png)*
+![Изображение: Пустое окно rqt при первом запуске](images/rqt.png)
 
 При первом запуске окно будет пустым — это нормально.
 
@@ -74,8 +73,7 @@ ros2 run turtlesim turtle_teleop_key
    - `x`: `1.0`
    - `y`: `1.0`
 
-**[Изображение: Настройка сервиса /spawn]**
-*(https://docs.ros.org/en/humble/_images/spawn.png)*
+![Изображение: Настройка сервиса /spawn](images/spawn.png)
 
 2. Нажмите кнопку **Call**
 
@@ -94,15 +92,13 @@ ros2 run turtlesim turtle_teleop_key
    - `b`: `0`
    - `width`: `5` (толщина линии)
 
-**[Изображение: Настройка сервиса /set_pen]**
-*(https://docs.ros.org/en/humble/_images/set_pen.png)*
+![Изображение: Настройка сервиса /set_pen](images/set_pen.png)
 
 3. Нажмите **Call**
 
 *Результат:* Первая черепаха теперь рисует красной линией толщиной 5 пикселей.
 
-**[Изображение: Черепаха с новым пером]**
-*(https://docs.ros.org/en/humble/_images/new_pen.png)*
+![Изображение: Черепаха с новым пером](images/new_pen.png)
 
 ---
 
@@ -118,8 +114,7 @@ ros2 run turtlesim turtle_teleop_key --ros-args --remap turtle1/cmd_vel:=turtle2
 - Первый терминал с teleop управляет `turtle1`
 - Второй терминал (с ремаппингом) управляет `turtle2`
 
-**[Изображение: Две черепахи с разными управлениями]**
-*(https://docs.ros.org/en/humble/_images/remap.png)*
+![Изображение: Две черепахи с разными управлениями](images/remap.png)
 
 ---
 
