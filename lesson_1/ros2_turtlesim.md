@@ -47,7 +47,7 @@ source /opt/ros/humble/setup.bash
 ros2 run turtlesim turtlesim_node
 ```
 
-![Окно turtlesim](lesson_1/images/turtlesim.png)
+![Окно turtlesim](images/turtlesim.png)
 
 **Что произошло:**
 - Запущен узел `turtlesim_node` с уникальным именем
