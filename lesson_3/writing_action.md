@@ -25,14 +25,14 @@ cd ~/ros2_ws/src
 ```
 
 ### **1.2 Создаём пакет с поддержкой actions**
-Для работы с actions нам понадобятся зависимости: `rclpy`, `rclpy_action`, `turtlesim`, `geometry_msgs`, а также инструменты для компиляции интерфейсов.
+Для работы с actions нам понадобятся зависимости: `rclpy`, `turtlesim`, `geometry_msgs`, а также инструменты для компиляции интерфейсов.
 
 Создадим пакет типа `ament_cmake`, потому что для компиляции файлов `.action` проще использовать CMake, а Python-узлы разместим в подпапке. Альтернативно можно создать `ament_python` и добавить поддержку CMake, но мы выберем стандартный путь.
 
 ```bash
 ros2 pkg create turtle_action \
   --build-type ament_cmake \
-  --dependencies rclcpp rclpy rclcpp_action rclpy_action turtlesim geometry_msgs action_msgs
+  --dependencies rclcpp rclpy rclcpp_action turtlesim geometry_msgs action_msgs
 ```
 
 > Примечание: мы добавили и C++, и Python зависимости, но будем писать только на Python. Это не помешает.
@@ -93,7 +93,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rclcpp_action REQUIRED)
-find_package(rclpy_action REQUIRED)
 find_package(turtlesim REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(action_msgs REQUIRED)
@@ -121,7 +120,6 @@ ament_package()
 <depend>rclcpp</depend>
 <depend>rclpy</depend>
 <depend>rclcpp_action</depend>
-<depend>rclpy_action</depend>
 <depend>turtlesim</depend>
 <depend>geometry_msgs</depend>
 <depend>action_msgs</depend>
@@ -442,6 +440,7 @@ ros2 run turtlesim turtlesim_node
 
 ### **6.2 Запускаем action-сервер (терминал №2)**
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run turtle_action action_server.py
 ```
 Должно появиться сообщение: `Action-сервер готов к работе.`
@@ -449,6 +448,7 @@ ros2 run turtle_action action_server.py
 ### **6.3 Запускаем action-клиента (терминал №3)**
 Например, переместим черепашку в точку (8.0, 2.0) с целевым углом 1.57 радиан (90°) и скоростью 1.0:
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run turtle_action action_client.py 8.0 2.0 1.57 1.0
 ```
 
