@@ -1,12 +1,14 @@
 # **Создание своего сервиса для получения координат черепашки в ROS 2**
 
 ## 🎯 **Цель**
-Создать собственный сервис в ROS 2, который позволит получать текущие координаты черепашки из симулятора turtlesim. Вы научитесь описывать тип сервиса, реализовывать сервер и клиент на Python, а также комбинировать топики и сервисы в одном узле.
+Создать собственный сервис в ROS 2, который позволит получать текущие координаты черепашки из симулятора turtlesim. Вы научитесь описывать тип сервиса, реализовывать сервер и клиент на Python, а также комбинировать топики и сервисы в одном узле.
 
 ---
 
 ## 📋 **Что мы будем делать**
-1. Создадим ROS 2 пакет с зависимостями.
+1. Создадим два ROS 2 пакета:
+   - `turtle_pose_interfaces` — пакет типа `ament_cmake` для определения типа сервиса `GetPose.srv`.
+   - `turtle_pose_service` — пакет типа `ament_python` для Python-узлов (сервер и клиент).
 2. Опишем свой тип сервиса `GetPose.srv` (запрос пустой, ответ содержит x, y, theta).
 3. Напишем **сервер**, который:
    - подписывается на топик `/turtle1/pose`;
@@ -14,6 +16,9 @@
    - по запросу клиента возвращает сохранённые координаты.
 4. Напишем **клиента**, который вызывает этот сервис и выводит результат.
 5. Соберём пакет и проверим работу.
+
+> ⚠️ **Почему два пакета?**
+> В ROS 2 определения сообщений и сервисов (.srv, .msg, .action) должны компилироваться отдельным пакетом типа `ament_cmake` с помощью `rosidl_default_generators`. Пакет типа `ament_python` не умеет генерировать интерфейсы. Поэтому стандартная практика — выносить интерфейсы в отдельный пакет.
 
 ---
 
@@ -25,22 +30,52 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 ```
 
-### **1.2 Создаём Python пакет с необходимыми зависимостями**
+### **1.2 Создаём пакет для интерфейсов**
 ```bash
-ros2 pkg create turtle_pose_service \
-  --build-type ament_python \
-  --dependencies rclpy turtlesim geometry_msgs
+cd ~/ros2_ws/src
+ros2 pkg create turtle_pose_interfaces \
+  --build-type ament_cmake
 ```
 
-- `rclpy` – клиентская библиотека Python.
-- `turtlesim` – для работы с черепашкой (тип `Pose`).
-- `geometry_msgs` – может пригодиться, но для Pose не обязателен (он из turtlesim).
-
-### **1.3 Структура пакета**
-Перейдите в пакет и создайте папки для сервисов:
+### **1.3 Создаём Python пакет с необходимыми зависимостями**
 ```bash
-cd ~/ros2_ws/src/turtle_pose_service
-mkdir srv
+cd ~/ros2_ws/src
+ros2 pkg create turtle_pose_service \
+  --build-type ament_python \
+  --dependencies rclpy turtlesim turtle_pose_interfaces
+```
+
+- `rclpy` — клиентская библиотека Python.
+- `turtlesim` — для работы с черепашкой (тип `Pose`).
+- `turtle_pose_interfaces` — наш пакет с определением сервиса.
+
+### **1.4 Структура пакетов**
+После создания у вас должна получиться следующая структура:
+
+```
+ros2_ws/
+└── src/
+    ├── turtle_pose_interfaces/
+    │   ├── CMakeLists.txt
+    │   ├── package.xml
+    │   └── srv/
+    │       └── GetPose.srv
+    └── turtle_pose_service/
+        ├── package.xml
+        ├── setup.py
+        ├── setup.cfg
+        ├── resource/
+        │   └── turtle_pose_service
+        └── turtle_pose_service/
+            ├── __init__.py
+            ├── pose_server.py
+            └── pose_client.py
+```
+
+Создадим папку `srv` в пакете интерфейсов:
+
+```bash
+mkdir ~/ros2_ws/src/turtle_pose_interfaces/srv
 ```
 
 ---
@@ -49,7 +84,7 @@ mkdir srv
 
 ### **2.1 Создаём файл `GetPose.srv`**
 ```bash
-touch srv/GetPose.srv
+touch ~/ros2_ws/src/turtle_pose_interfaces/srv/GetPose.srv
 ```
 
 ### **2.2 Редактируем `srv/GetPose.srv`**
@@ -62,46 +97,52 @@ float32 theta
 ```
 Здесь до `---` находится запрос (пустой), после – ответ (поля `x`, `y`, `theta`).
 
-### **2.3 Настраиваем `CMakeLists.txt` и `package.xml` для компиляции сервиса**
-Хотя пакет `ament_python`, для компиляции определений сервисов нужно добавить несколько строк.
-
-**В `package.xml`** убедитесь, что есть:
-```xml
-<depend>turtlesim</depend>
-<depend>geometry_msgs</depend>
-<depend>rosidl_default_generators</depend>
-<exec_depend>rosidl_default_runtime</exec_depend>
-<member_of_group>rosidl_interface_packages</member_of_group>
-```
-
-**В `CMakeLists.txt`** добавьте (содержимое должно быть примерно таким):
+### **2.3 Настраиваем `CMakeLists.txt` пакета интерфейсов**
+Откройте `~/ros2_ws/src/turtle_pose_interfaces/CMakeLists.txt` и приведите его к следующему виду:
 ```cmake
 cmake_minimum_required(VERSION 3.8)
-project(turtle_pose_service)
+project(turtle_pose_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclpy REQUIRED)
-find_package(turtlesim REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetPose.srv"
-  DEPENDENCIES geometry_msgs turtlesim
 )
 
 ament_package()
 ```
-Это заставит CMake сгенерировать Python-модули для нашего сервиса.
 
-> **Примечание:** для Python-пакетов с сервисами обычно используют `ament_cmake` как базовый тип, но мы создали `ament_python`. Можно пересоздать пакет как `ament_cmake` с Python-узлами, либо оставить как есть и добавить поддержку генерации интерфейсов. Для простоты можно использовать готовый тип из `example_interfaces`, но цель — научиться создавать свой сервис, поэтому оставим так.
+### **2.4 Настраиваем `package.xml` пакета интерфейсов**
+Откройте `~/ros2_ws/src/turtle_pose_interfaces/package.xml` и приведите его к следующему виду:
+```xml
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>turtle_pose_interfaces</name>
+  <version>0.0.0</version>
+  <description>Custom service interfaces for turtle_pose_service</description>
+  <maintainer email="your@email.com">your_name</maintainer>
+  <license>Apache-2.0</license>
 
-Если вы столкнётесь с проблемами при сборке, можно воспользоваться альтернативным подходом: создать пакет как `ament_cmake` и внутри добавить папку `turtle_pose_service` с Python-кодом. Но для простоты этого туториала мы пропустим детали сборки сервисов и сосредоточимся на логике узлов, предполагая, что вы используете уже готовый тип `example_interfaces/srv/AddTwoInts` или аналогичный. Однако чтобы полностью следовать теме, давайте всё же разберём полный цикл.
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+```
+
+> ⚠️ **Важно:** `rosidl_default_generators` указывается именно как `buildtool_depend`, а не `depend`. Это инструмент сборки, который не нужен во время выполнения.
 
 ---
 
@@ -125,7 +166,7 @@ chmod +x pose_server.py
 import rclpy
 from rclpy.node import Node
 from turtlesim.msg import Pose
-from turtle_pose_service.srv import GetPose  # сгенерированный тип сервиса
+from turtle_pose_interfaces.srv import GetPose  # сгенерированный тип сервиса
 
 class PoseServer(Node):
     def __init__(self):
@@ -188,6 +229,7 @@ if __name__ == '__main__':
 
 ### **4.1 Создаём файл `pose_client.py`**
 ```bash
+cd ~/ros2_ws/src/turtle_pose_service/turtle_pose_service
 touch pose_client.py
 chmod +x pose_client.py
 ```
@@ -202,7 +244,7 @@ chmod +x pose_client.py
 import sys
 import rclpy
 from rclpy.node import Node
-from turtle_pose_service.srv import GetPose
+from turtle_pose_interfaces.srv import GetPose
 
 class PoseClient(Node):
     def __init__(self):
@@ -252,13 +294,47 @@ if __name__ == '__main__':
     },
 ```
 
-### **5.2 Сборка пакета**
+### **5.2 Проверяем `package.xml` пакета `turtle_pose_service`**
+Убедитесь, что в `package.xml` есть зависимость на `turtle_pose_interfaces` и **нет** лишних зависимостей `rosidl_default_generators` (они нужны только в пакете интерфейсов):
+```xml
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>turtle_pose_service</name>
+  <version>0.0.0</version>
+  <description>Turtle pose service server and client</description>
+  <maintainer email="your@email.com">your_name</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>turtlesim</depend>
+  <depend>turtle_pose_interfaces</depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
+```
+
+### **5.3 Сборка пакетов**
+Сначала соберём пакет интерфейсов, затем пакет с узлами:
 ```bash
 cd ~/ros2_ws
-colcon build --packages-select turtle_pose_service
+
+# Сборка пакета интерфейсов
+colcon build --packages-select turtle_pose_interfaces
+
+# Подключаем результаты сборки, чтобы turtle_pose_service нашёл интерфейсы
 source install/setup.bash
+
+# Сборка пакета с узлами
+colcon build --packages-select turtle_pose_service
 ```
-При возникновении ошибок, связанных с генерацией сервисов, убедитесь, что правильно настроены `CMakeLists.txt` и `package.xml`. Если сложно, можно заменить использование своего сервиса на готовый, например `example_interfaces/srv/GetPose` (такого нет, но есть `AddTwoInts`). Для чистоты эксперимента можно использовать `std_srvs/srv/Empty` и в ответе передавать что-то, но это менее наглядно. Поэтому предлагаю упростить: взять тип `example_interfaces/srv/AddTwoInts` и адаптировать его под получение координат – просто сумма не имеет смысла. Лучше создать свой тип, но если проблемы, можно использовать `turtlesim/srv/TeleportAbsolute` как пример вызова сервиса, но это уже не наш сервис. Я предполагаю, что читатель справится с настройкой CMake. В любом случае, код написан в предположении, что сервис сгенерирован правильно.
 
 ---
 
@@ -266,19 +342,26 @@ source install/setup.bash
 
 ### **6.1 Запускаем turtlesim (терминал №1)**
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run turtlesim turtlesim_node
 ```
 
 ### **6.2 Запускаем сервер (терминал №2)**
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run turtle_pose_service pose_server
 ```
-Должно появиться сообщение: `Сервер готов. Жду запросов на /get_pose`.
+Должно появиться сообщение:
+```
+[INFO] [...] [pose_server]: Сервер готов. Жду запросов на /get_pose
+```
 
 ### **6.3 Запускаем клиента (терминал №3)**
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run turtle_pose_service pose_client
 ```
+
 Вы увидите вывод с координатами черепашки, например:
 ```
 [INFO] [1740078123.123456] [pose_client]: Текущая позиция черепашки: x=5.54, y=5.54, theta=0.00
@@ -292,9 +375,16 @@ ros2 service list
 
 ### **6.5 Вызов сервиса из командной строки**
 ```bash
-ros2 service call /get_pose turtle_pose_service/srv/GetPose "{}"
+ros2 service call /get_pose turtle_pose_interfaces/srv/GetPose "{}"
 ```
-Ответ придёт в виде структуры с координатами.
+Ответ придёт в виде структуры с координатами:
+```
+waiting for service to become available...
+requester: making request: turtle_pose_interfaces.srv.GetPose_Request()
+
+response:
+turtle_pose_interfaces.srv.GetPose_Response(x=5.544444561004639, y=5.544444561004639, theta=0.0)
+```
 
 ---
 
@@ -321,11 +411,12 @@ ros2 service call /get_pose turtle_pose_service/srv/GetPose "{}"
 ## 📚 **Ключевые концепции, которые вы освоили**
 
 ✅ **Создание собственного типа сервиса (файл .srv)**  
-✅ **Генерация кода сервиса при сборке пакета**  
+✅ **Разделение интерфейсов и логики узлов на два пакета**  
+✅ **Генерация кода сервиса при сборке пакета (`ament_cmake` + `rosidl`)**  
 ✅ **Реализация сервера сервиса с доступом к данным из топика**  
 ✅ **Реализация клиента для вызова сервиса**  
 ✅ **Комбинирование подписки на топики и предоставления сервисов**  
-✅ **Запуск и отладка сервисов в ROS 2**
+✅ **Запуск и отладка сервисов в ROS 2**
 
 ---
 
