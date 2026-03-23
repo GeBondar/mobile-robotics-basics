@@ -107,7 +107,7 @@ ros2 run turtlebot3_gazebo turtlebot3_drive
 ros2 launch turtlebot3_bringup rviz2.launch.py
 ```
 
-![RViz2 Visualization](images\turtlebot3_gazebo_rviz.png)
+![RViz2 Visualization](images/turtlebot3_gazebo_rviz.png)
 
 ---
 
