@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="macroed_robot">
+  <xacro:property name="body_length" value="0.6"/>
+  <xacro:property name="body_width" value="0.4"/>
+  <xacro:property name="body_height" value="0.2"/>
+
+  <xacro:macro name="box_link" params="name size color">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+
+  <material name="green">
+    <color rgba="0.1 0.7 0.25 1"/>
+  </material>
+  <material name="dark">
+    <color rgba="0.1 0.1 0.12 1"/>
+  </material>
+
+  <xacro:box_link name="base_link" size="${body_length} ${body_width} ${body_height}" color="green"/>
+  <xacro:box_link name="sensor_link" size="0.18 0.12 0.08" color="dark"/>
+
+  <joint name="sensor_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sensor_link"/>
+    <origin xyz="0.2 0 ${body_height}" rpy="0 0 0"/>
+  </joint>
+</robot>

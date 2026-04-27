@@ -1,254 +1,144 @@
-# 🐢 Практический туториал по turtlesim в ROS 2 Humble
+# turtlesim, ros2 CLI и базовые сущности ROS 2
 
-## 🎯 Введение
+Цель: запустить `turtlesim`, увидеть ноды и топики, вызвать сервисы и подготовиться к написанию собственных нод.
 
-### Что такое turtlesim?
-**Turtlesim** — это легковесный графический симулятор, созданный специально для обучения основам ROS 2. Он имитирует простого робота-черепаху, который может перемещаться по двумерной плоскости и оставлять след. 
+Официальная основа: <https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html>
 
-### Зачем нужен turtlesim?
-- **Изучение базовых концепций ROS 2**: узлы, топики, сервисы
-- **Практика работы с инструментами ROS 2**: `ros2`, `rqt`, `ros2cli`
-- **Безопасное экспериментирование**: все действия происходят в симуляторе
-- **Быстрый старт**: минимальные требования к установке
+## Установка
 
-## 📦 Установка turtlesim
+Для ROS 2 Jazzy:
 
-### Шаг 1: Обновление пакетного менеджера
 ```bash
 sudo apt update
+sudo apt install ros-jazzy-turtlesim
 ```
 
-### Шаг 2: Установка turtlesim
-```bash
-sudo apt install ros-humble-turtlesim
-```
+Для Humble используйте `ros-humble-turtlesim`.
 
-### Шаг 3: Проверка установки
+Проверьте, что пакет установлен:
+
 ```bash
-# Проверка доступных исполняемых файлов
 ros2 pkg executables turtlesim
-
-# Ожидаемый вывод:
-# turtlesim draw_square
-# turtlesim mimic
-# turtlesim turtle_teleop_key
-# turtlesim turtlesim_node
 ```
 
-## 🚀 Базовый запуск turtlesim
+Ожидаемые исполняемые файлы:
 
-### Шаг 1: Запуск симулятора
-**Терминал 1** - инициализация и запуск:
+```text
+turtlesim draw_square
+turtlesim mimic
+turtlesim turtle_teleop_key
+turtlesim turtlesim_node
+```
+
+## Запуск turtlesim
+
+В первом терминале:
+
 ```bash
-
-# Запуск симулятора
+source /opt/ros/jazzy/setup.bash
 ros2 run turtlesim turtlesim_node
 ```
 
-![Окно turtlesim](images/turtlesim.png)
+Во втором терминале:
 
-**Что произошло:**
-- Запущен узел `turtlesim_node` с уникальным именем
-- Создана черепаха в случайной позиции
-- Открылось графическое окно симулятора
-
-### Шаг 2: Запуск управления
-**Терминал 2** - управление черепахой:
 ```bash
-
-# Запуск управления с клавиатуры
+source /opt/ros/jazzy/setup.bash
 ros2 run turtlesim turtle_teleop_key
 ```
 
-### Шаг 3: Управление черепахой
-- **Стрелка вверх** - движение вперед
-- **Стрелка вниз** - движение назад
-- **Стрелка влево** - поворот налево
-- **Стрелка вправо** - поворот направо
+Управление выполняется стрелками в активном терминале с `turtle_teleop_key`.
 
-> **Важное замечание:** Черепаха движется дискретно - каждый раз при нажатии клавиши она перемещается на фиксированное расстояние и останавливается.
+## Ноды
 
-## 🔍 Исследование системы turtlesim
+В третьем терминале:
 
-### 1. Изучение активных узлов
 ```bash
-# В Терминале 3 (новый терминал)
-# Список активных узлов
+source /opt/ros/jazzy/setup.bash
 ros2 node list
-
-# Ожидаемый вывод:
-# /turtlesim
-# /teleop_turtle
 ```
 
-### 2. Изучение топиков
+Ожидаемый результат:
+
+```text
+/teleop_turtle
+/turtlesim
+```
+
+Посмотрите подробную информацию о ноде:
+
 ```bash
-# Список всех активных топиков
+ros2 node info /turtlesim
+```
+
+## Топики
+
+Список топиков:
+
+```bash
 ros2 topic list
-
-# Более подробная информация
 ros2 topic list -t
+```
 
-# Просмотр сообщений в реальном времени
+Посмотрите команды скорости:
+
+```bash
 ros2 topic echo /turtle1/cmd_vel
 ```
 
-### 3. Визуализация графа системы
-```bash
-# Запуск инструмента визуализации
-rqt_graph
-```
+Пока вы нажимаете стрелки в `turtle_teleop_key`, в этом терминале будут появляться сообщения `geometry_msgs/msg/Twist`.
 
-## ⚙️ Работа с сервисами turtlesim
+## Сервисы
 
-### 1. Список доступных сервисов
+Список сервисов:
+
 ```bash
 ros2 service list
 ```
 
-### 2. Создание новой черепахи
-```bash
-# Создание второй черепахи
-ros2 service call /spawn turtlesim/srv/Spawn "{x: 10.0, y: 10.0, theta: 1.57, name: 'turtle2'}"
+Создайте вторую черепаху:
 
-# Параметры:
-# x, y - координаты (от 0 до 11)
-# theta - угол поворота (в радианах)
-# name - уникальное имя черепахи
+```bash
+ros2 service call /spawn turtlesim/srv/Spawn "{x: 8.0, y: 8.0, theta: 0.0, name: 'turtle2'}"
 ```
 
-### 3. Управление внешним видом
+Измените перо первой черепахи:
 
-#### Изменение цвета пера:
 ```bash
-# Установка красного пера
-ros2 service call /turtle1/set_pen turtlesim/srv/SetPen "{r: 255, g: 0, b: 0, width: 5}"
-
-# Установка зеленого пера
-ros2 service call /turtle1/set_pen turtlesim/srv/SetPen "{r: 0, g: 255, b: 0, width: 3}"
+ros2 service call /turtle1/set_pen turtlesim/srv/SetPen "{r: 255, g: 0, b: 0, width: 5, off: 0}"
 ```
 
-#### Изменение цвета фона:
-```bash
-ros2 service call /clear std_srvs/srv/Empty
-ros2 service call /background_color turtlesim/srv/SetParameters "{
-  parameters: [
-    {name: 'background_r', value: {integer_value: 100}},
-    {name: 'background_g', value: {integer_value: 150}},
-    {name: 'background_b', value: {integer_value: 200}}
-  ]
-}"
-```
+Переместите черепаху в абсолютную позицию:
 
-### 4. Управление движением через сервисы
 ```bash
-# Прямое управление движением
 ros2 service call /turtle1/teleport_absolute turtlesim/srv/TeleportAbsolute "{x: 5.5, y: 5.5, theta: 0.0}"
-
-# Относительное перемещение
-ros2 service call /turtle1/teleport_relative turtlesim/srv/TeleportRelative "{linear: 2.0, angular: 1.57}"
 ```
 
-## 🚀 Продвинутые возможности
+## Граф ROS 2
 
-### 1. Использование rqt для управления
+Запустите визуализацию графа:
+
 ```bash
-# Запуск rqt
-rqt
-
-# В rqt можно:
-# 1. Выбрать Plugins -> Services -> Service Caller
-# 2. Выбрать нужный сервис
-# 3. Заполнить параметры
-# 4. Вызвать сервис
+rqt_graph
 ```
 
-### 2. Запись и воспроизведение топиков
+Сравните граф с выводом:
+
 ```bash
-# Запись топиков в файл
-ros2 bag record /turtle1/cmd_vel
-
-# Воспроизведение записанного
-ros2 bag play <имя_файла>.db3
-```
-
-### 3. Использование actions
-```bash
-# Список доступных действий
-ros2 action list
-
-# Информация о действии
-ros2 action info /turtle1/rotate_absolute
-```
-
-## 📝 Практические задания
-
-### 🟦 Задание 1: Рисование фигур
-**Цель:** Нарисовать квадрат, используя только клавиатурное управление.
-
-**Подсказки:**
-1. Двигайтесь вперед определенное расстояние
-2. Поверните на 90 градусов
-3. Повторите 4 раза
-
-### 🐢🐢 Задание 2: Управление несколькими черепахами
-**Цель:** Создать двух черепах и управлять ими поочередно.
-
-**Шаги:**
-1. Создайте вторую черепаху
-2. Изучите, какие топики создались для новой черепахи
-3. Напишите скрипт для поочередного управления
-
-### 🤖 Задание 3: Автоматическое движение
-**Цель:** Использовать сервисы для автоматического перемещения черепахи по заданному маршруту.
-
-### 🎨 Задание 4: Изменение параметров в реальном времени
-**Цель:** Изменять цвет пера в зависимости от скорости движения.
-
-## 🔧 Отладка и устранение проблем
-
-### 1. Черепаха не двигается
-```bash
-# Проверьте активные узлы
 ros2 node list
-
-# Проверьте, публикуются ли сообщения
-ros2 topic echo /turtle1/cmd_vel
+ros2 topic list
+ros2 service list
 ```
 
-### 2. Ошибки при вызове сервисов
+## Практика
+
+1. Нарисуйте квадрат, используя `turtle_teleop_key`.
+2. Создайте `turtle2` и найдите её топики.
+3. Опубликуйте команду скорости вручную:
+
 ```bash
-# Проверьте правильность формата сообщения
-ros2 interface show turtlesim/srv/Spawn
+ros2 topic pub /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}, angular: {z: 1.0}}"
 ```
 
-### 3. Проблемы с графическим интерфейсом
-```bash
-# Проверьте переменную DISPLAY
-echo $DISPLAY
+4. Остановите публикацию через `Ctrl+C`.
 
-# Перезапустите turtlesim
-ros2 run turtlesim turtlesim_node --ros-args --remap __node:=new_turtlesim
-```
-
-## 🏁 Заключение
-
-### Что вы узнали:
-1. **Основы ROS 2**: узлы, топики, сервисы
-2. **Работа с инструментами**: `ros2`, `rqt`
-3. **Управление роботом**: движение, изменение параметров
-4. **Отладка системы**: мониторинг, диагностика проблем
-
-### Следующие шаги:
-1. Изучите создание собственных узлов ROS 2
-2. Поработайте с более сложными симуляторами (Gazebo)
-3. Начните программировать настоящих роботов
-
-## 🔗 Полезные ссылки
-- [Официальная документация turtlesim](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html)
-- [Исходный код turtlesim](https://github.com/ros/ros_tutorials)
-- [ROS 2 cheat sheet](https://docs.ros.org/en/humble/Contributing/Developer-Guide.html)
-
----
-
-> **💡 Совет:** Сохраните этот туториал и возвращайтесь к нему при изучении новых концепций ROS 2.
+После этой статьи переходите к нодам и топикам в уроке 2.

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot name="multipleshapes">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+  <link name="right_leg">
+    <visual>
+      <geometry>
+        <box size="0.2 0.2 0.6"/>
+      </geometry>
+      <origin xyz="0 -0.22 -0.3" rpy="0 0 0"/>
+    </visual>
+  </link>
+  <joint name="base_to_right_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_leg"/>
+  </joint>
+</robot>

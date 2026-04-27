@@ -1,0 +1,12 @@
+float32 target_x
+float32 target_y
+float32 target_theta
+float32 speed
+---
+bool success
+float32 final_distance
+---
+float32 current_x
+float32 current_y
+float32 current_theta
+float32 distance_left

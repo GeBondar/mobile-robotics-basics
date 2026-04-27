@@ -1,16 +1,44 @@
-### Тестовая демонстрация
+# Проверка установки ROS 2
 
-#### Пример 1: Обмен сообщениями
+Цель: убедиться, что установленная среда ROS 2 Jazzy запускает стандартные demo-ноды.
 
-**Терминал 1** (издатель):
+## Подготовка терминалов
 
-    source /opt/ros/humble/setup.bash
-    ros2 run demo_nodes_cpp talker
+Откройте два терминала и в каждом подключите окружение:
 
-**Терминал 2** (подписчик):
+```bash
+source /opt/ros/jazzy/setup.bash
+```
 
-    source /opt/ros/humble/setup.bash
-    ros2 run demo_nodes_py listener
+Если вы проверяете Humble, замените `jazzy` на `humble`.
 
-Если установка успешна, в первом терминале будут появляться сообщения `"Hello World: X"`, а во втором - `"I heard: Hello World: X"`.
+## Проверка publisher/subscriber
 
+В первом терминале запустите talker:
+
+```bash
+ros2 run demo_nodes_cpp talker
+```
+
+Во втором терминале запустите listener:
+
+```bash
+ros2 run demo_nodes_py listener
+```
+
+Ожидаемый результат:
+
+- в первом терминале появляются сообщения вида `Publishing: 'Hello World: N'`;
+- во втором терминале появляются сообщения вида `I heard: 'Hello World: N'`.
+
+Если listener получает сообщения, базовая установка ROS 2 и DDS discovery работают корректно.
+
+## Быстрая диагностика
+
+```bash
+ros2 node list
+ros2 topic list
+ros2 doctor
+```
+
+Если команды `ros2` не находятся, проверьте, что в текущем терминале выполнен `source /opt/ros/jazzy/setup.bash`.

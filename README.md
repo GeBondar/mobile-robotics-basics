@@ -1,158 +1,126 @@
-# Mobile Robotics Basics (ROS 2)
+# Mobile Robotics Basics: ROS 2 Jazzy
 
-Учебный курс по **основам мобильной робототехники с использованием ROS 2**.  
-Курс предназначен для студентов, начинающих инженеров и всех, кто хочет понять базовые принципы работы мобильных роботов, архитектуру ROS 2 и практические инструменты для отладки и тестирования.
+Практический курс по основам мобильной робототехники на ROS 2. Основная версия курса - **ROS 2 Jazzy Jalisco на Ubuntu 24.04**. Для части материалов дополнительно указывается совместимость с **ROS 2 Humble Hawksbill на Ubuntu 22.04**.
 
-Материалы курса построены по принципу *от установки → к практике → к управлению мобильным роботом*.
+Курс устроен как рабочая методичка: каждая статья должна давать понятную цель, минимальную теорию, воспроизводимые команды, ожидаемый результат и контрольные проверки. Термины русской локализации курса: **нода**, **топик**, **сервис**, **действие**, **параметр**, **launch-файл**, **фрейм**.
 
----
+## Быстрый Старт
 
-## 🎯 Цели курса
+1. Подготовьте Ubuntu 24.04: локально, в WSL2 или в виртуальной машине.
+2. Установите ROS 2 Jazzy: [Ubuntu 24.04](<lesson 1 (install ROS2 and testing)/ros2_jazzy_install.md>) или [Windows + WSL2](<lesson 1 (install ROS2 and testing)/windows_wsl2_jazzy_install.md>).
+3. Настройте окружение: [ROS 2 environment](<lesson 1 (install ROS2 and testing)/ros2_environment.md>).
+4. Проверьте установку: [ros2doctor](<lesson 1 (install ROS2 and testing)/ros2_doctor.md>).
+5. Пройдите первые практики: [turtlesim](<lesson 1 (install ROS2 and testing)/ros2_turtlesim.md>) и [rqt](<lesson 1 (install ROS2 and testing)/ros2_rqt.md>).
+6. Соберите workspace курса: [ros2_ws/src](<ros2_ws/src/README.md>).
 
-В рамках курса слушатели:
-- познакомятся с архитектурой ROS 2;
-- научатся устанавливать и настраивать ROS 2 (Humble / Jazzy);
-- освоят базовые инструменты командной строки ROS 2;
-- разберутся с топиками, нодами и сообщениями;
-- научатся использовать `turtlesim` для моделирования мобильного робота;
-- освоят визуальные инструменты отладки (`rqt`).
+```bash
+cd ros2_ws
+source /opt/ros/$ROS_DISTRO/setup.bash
+rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
+colcon build --symlink-install
+source install/setup.bash
+```
 
----
+## Структура Курса
 
-## 🧩 Структура курса
+| Урок | Тема | Навигация |
+|---:|---|---|
+| 1 | Установка, окружение и базовые инструменты | [README](<lesson 1 (install ROS2 and testing)/README.md>) |
+| 2 | Ноды, топики, workspace и запись данных | [README](<lesson 2 (nodes and topics)/README.md>) |
+| 3 | Сервисы и действия | [README](<lesson 3 (actions and services)/README.md>) |
+| 4 | Launch-файлы и параметры | [README](<lesson 4 (launches and parameters)/README.md>) |
+| 5 | URDF, Xacro и robot_state_publisher | [README](<lesson 5 (URDF and XACRO)/README.md>) |
+| 6 | RViz2 и rqt | [README](<lesson 6 (RViz2 and rqt)/README.md>) |
+| 7 | tf2 | [README](<lesson 7 (TF2)/README.md>) |
+| 8 | Gazebo | [README](<lesson 8 (Gazebo)/README.md>) |
+| 9 | Nav2 | [README](<lesson 9 (NAV2)/README.md>) |
+| 10 | TurtleBot3 simulation | [README](<lesson 10 (turtlebot3 sim)/README.md>) |
+| 11 | micro-ROS | [README](<lesson 11 (micro-ros)/README.md>) |
 
-Курс разбит на тематические занятия.  
-Каждый урок содержит теорию и практические шаги для самостоятельного выполнения.
+## Рекомендуемый Маршрут
 
-### 📘 Lesson 1 — Введение в ROS 2 и базовые инструменты
+### Базовый уровень
 
-Папка: [`lesson_1`](lesson_1)
+1. [Установка ROS 2 Jazzy](<lesson 1 (install ROS2 and testing)/ros2_jazzy_install.md>)
+2. [Настройка окружения ROS 2](<lesson 1 (install ROS2 and testing)/ros2_environment.md>)
+3. [Проверка установки через ros2doctor](<lesson 1 (install ROS2 and testing)/ros2_doctor.md>)
+4. [turtlesim, ros2 CLI и rqt](<lesson 1 (install ROS2 and testing)/ros2_turtlesim.md>)
+5. [Ноды](<lesson 2 (nodes and topics)/understanding_nodes.md>)
+6. [Топики](<lesson 2 (nodes and topics)/understanding_topics.md>)
+7. [Workspace, colcon и пакеты](<lesson 2 (nodes and topics)/workspace_colcon_package.md>)
 
-#### 1. Установка ROS 2
+### Разработка ROS 2 пакетов
 
-- 🔹 **ROS 2 Humble (Ubuntu 22.04)**  
-  👉 [`lesson_1/ros2_humble_install.md`](lesson_1/ros2_humble_install.md)
+1. [Публикатор для turtlesim](<lesson 2 (nodes and topics)/writing_talker.md>)
+2. [Подписчик на pose turtlesim](<lesson 2 (nodes and topics)/writing_listener.md>)
+3. [rosdep и зависимости workspace](<lesson 2 (nodes and topics)/rosdep.md>)
+4. [ros2 bag: запись и воспроизведение данных](<lesson 2 (nodes and topics)/ros2_bag.md>)
+5. [Сервисы](<lesson 3 (actions and services)/understanding_services.md>)
+6. [Свой сервис](<lesson 3 (actions and services)/writing_service.md>)
+7. [Действия](<lesson 3 (actions and services)/understanding_actions.md>)
+8. [Своё действие MoveTo](<lesson 3 (actions and services)/writing_action.md>)
 
-- 🔹 **ROS 2 Jazzy (Ubuntu 24.04)**  
-  👉 [`lesson_1/ros2_jazzy_install.md`](lesson_1/ros2_jazzy_install.md)
+### Робототехническая модель и визуализация
 
----
+1. [Параметры](<lesson 4 (launches and parameters)/understanding_parameters.md>)
+2. [Launch-файлы](<lesson 4 (launches and parameters)/understanding_launches.md>)
+3. [URDF](<lesson 5 (URDF and XACRO)/understanding_URDF.md>)
+4. [Xacro](<lesson 5 (URDF and XACRO)/understanding_xacro.md>)
+5. [robot_state_publisher](<lesson 5 (URDF and XACRO)/writing_state_publisher.md>)
+6. [RViz2](<lesson 6 (RViz2 and rqt)/RViz_introduction.md>)
+7. [tf2](<lesson 7 (TF2)/introducing_tf2.md>)
 
-#### 2. Моделирование мобильного робота в Turtlesim
+## Workspace Курса
 
-👉 [`lesson_1/ros2_turtlesim.md`](lesson_1/ros2_turtlesim.md)
+В репозитории есть готовый исходный workspace: [ros2_ws/src](<ros2_ws/src/README.md>). Он нужен для проверки практических статей и содержит пакеты, создаваемые по ходу курса:
 
-Раздел посвящён первому практическому примеру мобильного робота:
-- запуск `turtlesim`;
-- управление движением через топик `/cmd_vel`;
-- анализ сообщений `geometry_msgs/Twist`;
-- визуализация движения робота;
-- базовые эксперименты с траекторией.
+- `my_turtle_controller`
+- `my_turtle_subscriber`
+- `turtle_pose_interfaces`
+- `turtle_pose_service`
+- `turtle_action`
+- `custom_action_interfaces`
+- `fibonacci_action_py`
+- `my_project_start`
+- `urdf_tutorial`
+- `urdf_tutorial_r2d2`
+- `learning_tf2_py`
 
-Используется упрощённая модель дифференциального мобильного робота.
+## Соглашения Курса
 
----
+- Основной дистрибутив: `jazzy`.
+- Команды, зависящие от версии ROS 2, по возможности пишутся через `$ROS_DISTRO`.
+- Если команда отличается для Humble, это указывается отдельным примечанием.
+- Python-пакеты курса используют `ament_python`; интерфейсные пакеты `.srv` и `.action` используют `ament_cmake`.
+- В статьях не используются незавершённые фрагменты кода как готовые файлы. Если код надо сохранить в файл, он приводится целиком.
 
-#### 3. Визуальные инструменты ROS 2 (rqt)
+## Диагностика
 
-👉 [`lesson_1/ros2_rqt`](lesson_1/ros2_rqt)
+Если команда ROS 2 не находится:
 
-Здесь рассматривается:
-- запуск `rqt`;
-- просмотр графа нод;
-- мониторинг топиков;
-- анализ сообщений в реальном времени;
-- отладка взаимодействия компонентов ROS 2.
+```bash
+source /opt/ros/jazzy/setup.bash
+echo $ROS_DISTRO
+ros2 doctor
+```
 
----
+Если пакет из workspace не находится:
 
-### 📘 Lesson 2 — Ноды, топики и простые публикаторы/подписчики
+```bash
+cd ros2_ws
+source install/setup.bash
+ros2 pkg list | grep learning_tf2_py
+```
 
-Папка: [`lesson_2`](lesson_2)
+## Внешние Источники
 
-#### 1. Понимание нод в ROS 2
+Курс основан на официальных материалах ROS 2 Jazzy:
 
-👉 [`lesson_2/understanding_nodes.md`](lesson_2/understanding_nodes.md)
+- [ROS 2 Jazzy Documentation](https://docs.ros.org/en/jazzy/)
+- [ROS 2 Jazzy Tutorials](https://docs.ros.org/en/jazzy/Tutorials.html)
+- [ROS 2 Jazzy Ubuntu installation](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 
-- что такое нода;
-- роль нод в ROS 2-системе;
-- запуск и остановка нод;
-- просмотр списка активных нод.
+## Служебные Материалы
 
----
-
-#### 2. Понимание топиков в ROS 2
-
-👉 [`lesson_2/understanding_topics.md`](lesson_2/understanding_topics.md)
-
-- что такое топик;
-- модель публикации/подписки (Pub/Sub);
-- просмотр активных топиков;
-- ручная публикация сообщений в топик.
-
----
-
-#### 3. Пишем свою ноду-публикатор (Talker)
-
-👉 [`lesson_2/writing_talker.md`](lesson_2/writing_talker.md)
-
-- создание простой ноды на Python/C++;
-- публикация сообщений в топик;
-- настройка частоты публикации;
-- запуск и тестирование talker-ноды.
-
----
-
-#### 4. Пишем свою ноду-подписчик (Listener)
-
-👉 [`lesson_2/writing_listener.md`](lesson_2/writing_listener.md)
-
-- создание ноды-подписчика;
-- обработка входящих сообщений;
-- отладка получения данных;
-- запуск talker и listener вместе.
-
----
-
-#### 5. Визуализация графа нод и топиков
-
-👉 Папка [`lesson_2/images`](lesson_2/images) содержит схемы и примеры визуализации.
-
-- использование `rqt_graph` для отображения связей;
-- анализ потока данных между нодами;
-- примеры графов для talker/listener.
-
-## 🛠 Требования
-
-- Ubuntu 22.04 (для ROS 2 Humble) или Ubuntu 24.04 (для ROS 2 Jazzy)
-- Базовые навыки работы с терминалом Linux
-- Желательно: понимание основ программирования (Python / C++)
-
----
-
-## 🚀 Рекомендуемый порядок прохождения
-
-1. Установка ROS 2 (Humble или Jazzy)
-2. Проверка системы и базовые команды
-3. Работа с `turtlesim`
-4. Использование `rqt` для анализа и отладки
-
----
-
-## 📌 Примечание
-
-Курс ориентирован на **мобильную робототехнику** и будет расширяться:
-- дифференциальная кинематика;
-- работа с сенсорами;
-- локализация и навигация;
-- взаимодействие с реальным мобильным роботом.
-
----
-
-## 📂 Репозиторий
-
-Автор курса: **GeBondar**  
-Репозиторий:  
-👉 https://github.com/GeBondar/mobile-robotics-basics
-
----
+- [COURSE_AUDIT.md](COURSE_AUDIT.md) - текущий аудит ссылок, покрытия тем и среды запуска.
+- [ros2_ws/src](<ros2_ws/src>) - исходники пакетов для проверки практических уроков.

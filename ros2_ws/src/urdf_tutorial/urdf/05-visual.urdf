@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<robot name="visual_robot">
+  <material name="blue">
+    <color rgba="0 0.2 0.8 1"/>
+  </material>
+  <material name="gray">
+    <color rgba="0.45 0.45 0.45 1"/>
+  </material>
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.6 0.4 0.2"/>
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <material name="gray"/>
+    </visual>
+  </link>
+  <link name="head">
+    <visual>
+      <geometry>
+        <sphere radius="0.18"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <joint name="head_swivel" type="fixed">
+    <parent link="base_link"/>
+    <child link="head"/>
+    <origin xyz="0 0 0.35" rpy="0 0 0"/>
+  </joint>
+</robot>

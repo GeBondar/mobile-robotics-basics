@@ -50,8 +50,8 @@ ros2 launch urdf_tutorial display.launch.py model:=urdf/01-myfirst.urdf
 ```
 
 Этот запуск делает три вещи:
-- Загружает указанную модель и сохраняет её как параметр для узла `robot_state_publisher`.
-- Запускает узлы для публикации `sensor_msgs/msg/JointState` и трансформаций (подробнее позже).
+- Загружает указанную модель и сохраняет её как параметр для ноды `robot_state_publisher`.
+- Запускает ноды для публикации `sensor_msgs/msg/JointState` и трансформаций (подробнее позже).
 - Запускает RViz с предварительно настроенной конфигурацией.
 
 После запуска вы увидите в RViz следующее:
@@ -165,7 +165,7 @@ ros2 launch urdf_tutorial display.launch.py model:=urdf/03-origins.urdf
 
 ## Материалы
 
-«Хорошо, — скажете вы. — Это всё мило, но не у всех же есть B21. Мой робот и R2D2 не красные!» Это справедливое замечание. Давайте разберём тег `<material>`. ([исходник: 04-materials.urdf](https://github.com/ros/urdf_tutorial/blob/master/urdf/04-materials.urdf))
+Материалы позволяют отделить геометрию от цвета и переиспользовать оформление в разных звеньях модели. Разберём тег `<material>`. ([исходник: 04-materials.urdf](https://github.com/ros/urdf_tutorial/blob/master/urdf/04-materials.urdf))
 
 ```xml
 <?xml version="1.0"?>
@@ -290,4 +290,4 @@ ros2 launch urdf_tutorial display.launch.py model:=urdf/05-visual.urdf
 
 ---
 
-**Примечание:** Все примеры взяты из официальной документации ROS2 и адаптированы для русскоязычных читателей. Оригинал статьи доступен [здесь](https://docs.ros.org/en/rolling/Tutorials/Intermediate/URDF/URDF-Main.html).
+**Примечание:** Примеры адаптированы по официальной документации ROS 2 Jazzy. Оригинальный раздел доступен здесь: <https://docs.ros.org/en/jazzy/Tutorials/Intermediate/URDF/URDF-Main.html>.

@@ -2,7 +2,7 @@
 
 Официальная инструкция: [ROS 2 Jazzy Installation Guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 
-## 📋 Предварительные требования
+## Предварительные требования
 
 - **Операционная система:** Ubuntu 24.04 (Noble Numbat)
 - **Архитектура:** AMD64 (x86_64) или ARM64
@@ -20,7 +20,7 @@
     sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
     export LANG=en_US.UTF-8
 
-## 🚀 1. Настройка репозиториев
+## 1. Настройка репозиториев
 
 ### 1.1. Включить репозиторий Universe
 
@@ -76,7 +76,7 @@
     echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
     source ~/.bashrc
 
-## ✅ 4. Проверка установки
+## 4. Проверка установки
 
 ### 4.1. Проверить переменные окружения ROS
 
@@ -132,7 +132,7 @@
 
 **Решение:** Убедитесь, что в `~/.bashrc` нет строк, загружающих другие версии ROS.
 
-## 📚 6. Дополнительные ресурсы
+## 6. Дополнительные ресурсы
 
 - [Официальная документация ROS 2 Jazzy](https://docs.ros.org/en/jazzy/)
 - [Туториалы для начинающих](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html)
@@ -140,4 +140,4 @@
 
 **Примечание:** Данная инструкция предназначена для чистой установки на Ubuntu 24.04. Если у вас возникают проблемы, проверьте [официальную документацию](https://docs.ros.org/en/jazzy/Installation.html) или обратитесь к сообществу ROS.
 
-Успешной работы с ROS 2! 🤖
+После установки переходите к настройке окружения и проверке `ros2 doctor`.

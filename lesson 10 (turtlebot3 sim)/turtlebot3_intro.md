@@ -80,7 +80,7 @@ ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
 
 ### Телеуправление с клавиатуры
 
-В новом терминале запустите узел управления:
+В новом терминале запустите ноду управления:
 
 ```bash
 ros2 run turtlebot3_teleop teleop_keyboard
@@ -88,8 +88,8 @@ ros2 run turtlebot3_teleop teleop_keyboard
 
 ### Автономное движение с избеганием препятствий
 
-1. Завершите узел телеуправления (`Ctrl+C`).
-2. Запустите узел автономного вождения:
+1. Завершите ноду телеуправления (`Ctrl+C`).
+2. Запустите ноду автономного вождения:
 
 ```bash
 ros2 run turtlebot3_gazebo turtlebot3_drive
