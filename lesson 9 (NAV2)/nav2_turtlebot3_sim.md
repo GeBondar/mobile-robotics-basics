@@ -49,6 +49,10 @@ ros2 run turtlebot3_teleop teleop_keyboard
 
 Робот немедленно поедет к цели: на карте появится глобальный маршрут, и контроллер поведёт робота вдоль него, объезжая колонны. Если на пути поставить препятствие, локальная costmap его увидит, и маршрут перестроится.
 
+![Навигация к цели Nav2 Goal](images/nav2_goal_navigation.png)
+
+*Рис. 1. Навигация к цели: контроллер ведёт робота между препятствиями, справа в RViz2 — costmap с зонами инфляции, снизу — вид с камеры робота. Источник: видео Articulated Robotics «Making robot navigation easy with Nav2 and ROS!».*
+
 ## Шаг 5. Отправка цели из терминала
 Навигация — это действие `NavigateToPose` (см. [урок 3](<../lesson 3 (actions and services)/understanding_actions.md>)). Убедимся, что action-сервер запущен:
 
