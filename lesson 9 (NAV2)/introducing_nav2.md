@@ -77,6 +77,10 @@ ros2 lifecycle nodes          # список lifecycle-нод
 ros2 lifecycle get /amcl      # текущее состояние ноды amcl
 ```
 
+![Запуск стека Nav2](images/nav2_lifecycle_active.png)
+
+*Рис. 1. Запуск стека Nav2: `lifecycle_manager` активировал все серверы — в терминале слева видно «Managed nodes are active». Справа — RViz2 с costmap. Источник: видео Articulated Robotics «Making robot navigation easy with Nav2 and ROS!».*
+
 ---
 
 ## Установка Nav2
