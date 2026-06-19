@@ -36,6 +36,10 @@ Nav2 устроен модульно. Каждая задача — отдель
 
 Важно: серверы Nav2 — это **action-серверы** (см. [урок 3](<../lesson 3 (actions and services)/understanding_actions.md>)). Например, цель навигации отправляется как действие `NavigateToPose`: долгая задача с обратной связью и возможностью отмены — ровно тот случай, для которого действия и придуманы.
 
+![Запуск Nav2 из терминала](images/nav2_launch_terminal.png)
+
+*Рис. 1. Весь стек Nav2 поднимается одной командой `ros2 launch`. Слева — терминал запуска, справа — RViz2 с картой. Источник: видео Articulated Robotics «Making robot navigation easy with Nav2 and ROS!».*
+
 ---
 
 ## Обязательные tf-фреймы
@@ -70,16 +74,16 @@ unconfigured -> inactive -> active
 
 Это нужно для детерминированного старта: `lifecycle_manager` сначала конфигурирует все ноды стека, и только когда все готовы — активирует их в правильном порядке. Если бы ноды стартовали как попало, контроллер мог бы начать вести робота до того, как загрузилась карта.
 
+![Активация lifecycle-нод](images/nav2_lifecycle_active.png)
+
+*Рис. 2. `lifecycle_manager` активировал все серверы — в терминале видно «Managed nodes are active». Источник: то же видео.*
+
 Посмотреть состояние lifecycle-ноды можно командами:
 
 ```bash
 ros2 lifecycle nodes          # список lifecycle-нод
 ros2 lifecycle get /amcl      # текущее состояние ноды amcl
 ```
-
-![Запуск стека Nav2](images/nav2_lifecycle_active.png)
-
-*Рис. 1. Запуск стека Nav2: `lifecycle_manager` активировал все серверы — в терминале слева видно «Managed nodes are active». Справа — RViz2 с costmap. Источник: видео Articulated Robotics «Making robot navigation easy with Nav2 and ROS!».*
 
 ---
 
@@ -91,6 +95,12 @@ sudo apt install ros-$ROS_DISTRO-navigation2 ros-$ROS_DISTRO-nav2-bringup
 
 * `navigation2` — метапакет со всеми серверами Nav2;
 * `nav2_bringup` — готовые launch-файлы и примеры конфигураций.
+
+Поведение всех серверов задаётся одним большим файлом параметров (`nav2_params.yaml`): радиус робота, параметры планировщика, контроллера, AMCL и costmap. На старте достаточно значений по умолчанию, а тонкая настройка — это правка именно этого файла.
+
+![Файл параметров Nav2](images/nav2_params_file.png)
+
+*Рис. 3. Фрагмент `nav2_params.yaml`: параметры AMCL и `bt_navigator` (`global_frame: map`, `robot_base_frame: base_link`). Источник: то же видео.*
 
 ---
 
