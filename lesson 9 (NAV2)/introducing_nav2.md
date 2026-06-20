@@ -36,6 +36,12 @@ Nav2 устроен модульно. Каждая задача — отдель
 
 Важно: серверы Nav2 — это **action-серверы** (см. [урок 3](<../lesson 3 (actions and services)/understanding_actions.md>)). Например, цель навигации отправляется как действие `NavigateToPose`: долгая задача с обратной связью и возможностью отмены — ровно тот случай, для которого действия и придуманы.
 
+Когда весь стек поднят одной командой `ros2 launch` (это мы сделаем в статье про симуляцию), он выглядит так: слева работает терминал с логами всех серверов, справа — RViz2 с картой.
+
+![Запущенный стек Nav2: терминал и RViz2](nav2_launch_terminal.png)
+
+*Запущенный стек Nav2: слева — терминал, справа — RViz2 с картой. Источник: видео Articulated Robotics «Making robot navigation easy with Nav2 and ROS!».*
+
 ---
 
 ## Обязательные tf-фреймы
@@ -77,6 +83,10 @@ ros2 lifecycle nodes          # список lifecycle-нод
 ros2 lifecycle get /amcl      # текущее состояние ноды amcl
 ```
 
+![Все ноды Nav2 активны](nav2_lifecycle_active.png)
+
+*Что показывает терминал после запуска: `lifecycle_manager` активировал все серверы — строка «Managed nodes are active». Команда `ros2 lifecycle get /amcl` вернёт для такой ноды `active`. Источник: то же видео.*
+
 ---
 
 ## Установка Nav2
@@ -87,6 +97,12 @@ sudo apt install ros-$ROS_DISTRO-navigation2 ros-$ROS_DISTRO-nav2-bringup
 
 * `navigation2` — метапакет со всеми серверами Nav2;
 * `nav2_bringup` — готовые launch-файлы и примеры конфигураций.
+
+Поведение всех серверов задаётся одним большим файлом параметров (`nav2_params.yaml`): радиус робота, параметры планировщика, контроллера, AMCL и costmap. На старте достаточно значений по умолчанию, а тонкая настройка — это правка именно этого файла.
+
+![Файл параметров Nav2](nav2_params_file.png)
+
+*Фрагмент `nav2_params.yaml`: параметры AMCL и `bt_navigator` (`global_frame: map`, `robot_base_frame: base_link`). Именно этот файл правят при настройке навигации. Источник: то же видео.*
 
 ---
 
