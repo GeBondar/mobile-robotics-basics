@@ -36,6 +36,9 @@ source install/setup.bash
 | 9 | Nav2 | [README](<lesson 9 (NAV2)/README.md>) |
 | 10 | TurtleBot3 simulation | [README](<lesson 10 (turtlebot3 sim)/README.md>) |
 | 11 | micro-ROS | [README](<lesson 11 (micro-ros)/README.md>) |
+| 12 | Stable-Baselines3: обучение с подкреплением | [README](<lesson 12 (stable baselines3)/README.md>) |
+| 13 | Microduck: симулятор MuJoCo с RL-политиками | [README](<lesson 13 (microduck mujoco sim)/README.md>) |
+| 12 | Stable Baselines 3: обучение с подкреплением | [README](<lesson 12 (stable baselines3)/README.md>) |
 
 ## Рекомендуемый Маршрут
 
