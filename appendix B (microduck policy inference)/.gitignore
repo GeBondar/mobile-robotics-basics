@@ -1,0 +1,5 @@
+# 3rd-party checkouts — cloned by scripts in README.md, not tracked in this course repo
+microduck/
+microduck_rl/
+# trained ONNX policies downloaded from Hugging Face (pollen-robotics/microduck-policies)
+policies/

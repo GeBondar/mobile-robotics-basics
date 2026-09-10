@@ -1,1 +1,32 @@
-COURSE_AUDIT.md
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- ROS 2 workspace ---
+build/
+install/
+log/
+
+# --- Обучение: веса и логи не коммитим ---
+models/
+logs/
+runs/
+*.tfevents.*
+training_log*.txt
+
+# Исключение: готовые политики уроков нужны в репозитории
+!lesson 14 (RL custom models)/track_b_walk/policies/
+
+# --- Чужие репозитории, клонируемые локально (приложение Б) ---
+appendix B (microduck policy inference)/microduck/
+appendix B (microduck policy inference)/microduck_rl/
+appendix B (microduck policy inference)/policies/
+
+# --- ОС, редакторы, движки ---
+.DS_Store
+Thumbs.db
+*.stackdump
+MUJOCO_LOG.TXT

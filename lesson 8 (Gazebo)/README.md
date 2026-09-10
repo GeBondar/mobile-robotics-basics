@@ -2,7 +2,7 @@
 
 Раздел курса по симуляции мобильных роботов в **Gazebo Harmonic** с ROS 2 **Jazzy Jalisco**.
 
-Связанный материал: [TurtleBot3 simulation](https://github.com/GeBondar/mobile-robotics-basics/blob/main/lesson%2010%20(turtlebot3%20sim)/README.md).
+Связанный материал: [TurtleBot3 simulation](https://github.com/GeBondar/mobile-robotics-basics/blob/main/lesson%2011%20(turtlebot3%20sim)/README.md).
 
 ## Цель урока
 

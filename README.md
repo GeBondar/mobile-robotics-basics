@@ -33,12 +33,13 @@ source install/setup.bash
 | 6 | RViz2 и rqt | [README](<lesson 6 (RViz2 and rqt)/README.md>) |
 | 7 | tf2 | [README](<lesson 7 (TF2)/README.md>) |
 | 8 | Gazebo | [README](<lesson 8 (Gazebo)/README.md>) |
-| 9 | Nav2 | [README](<lesson 9 (NAV2)/README.md>) |
-| 10 | TurtleBot3 simulation | [README](<lesson 10 (turtlebot3 sim)/README.md>) |
-| 11 | micro-ROS | [README](<lesson 11 (micro-ros)/README.md>) |
-| 12 | Stable-Baselines3: обучение с подкреплением | [README](<lesson 12 (stable baselines3)/README.md>) |
-| 13 | Microduck: симулятор MuJoCo с RL-политиками | [README](<lesson 13 (microduck mujoco sim)/README.md>) |
-| 12 | Stable Baselines 3: обучение с подкреплением | [README](<lesson 12 (stable baselines3)/README.md>) |
+| 9 | Nav2 | [README](<lesson 10 (Nav2)/README.md>) |
+| 10 | TurtleBot3 simulation | [README](<lesson 11 (turtlebot3 sim)/README.md>) |
+| 11 | micro-ROS | [README](<lesson 12 (micro-ros)/README.md>) |
+| 12 | Stable-Baselines3: обучение с подкреплением | [README](<lesson 13 (stable baselines3)/README.md>) |
+| 13 | Microduck: симулятор MuJoCo с RL-политиками | [README](<appendix B (microduck policy inference)/README.md>) |
+| 12 | Stable Baselines 3: обучение с подкреплением | [README](<lesson 13 (stable baselines3)/README.md>) |
+| 14 | MuJoCo: машинка с рулём учится парковаться | [README](<lesson 14 (RL custom models)/README.md>) |
 
 ## Рекомендуемый Маршрут
 
