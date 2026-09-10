@@ -1,0 +1,40 @@
+# Python-зависимости RL-дорожки курса (уроки 13-14).
+#
+# Версии зафиксированы ровно те, что проверены на машине разработчика:
+#   Python 3.12.3, Windows 11, 24 CPU, NVIDIA GeForce RTX 4060 Laptop GPU.
+# ROS 2 для этого файла не нужен — вся RL-дорожка работает на чистом Python.
+# Где GPU помогает, а где мешает — см. SETUP.md, раздел «Нужен ли GPU».
+#
+# Установка:
+#     python -m venv .venv
+#     .venv\Scripts\Activate.ps1      # Windows (PowerShell)
+#     source .venv/bin/activate       # Linux / WSL2 / macOS
+#     python -m pip install --upgrade pip
+#     pip install -r requirements.txt
+#
+# torch ниже пинуется без суффикса сборки: pip возьмёт колесо с PyPI.
+# Этого достаточно для всех уроков курса — обучение идёт с device="cpu".
+# Если нужна именно CUDA-сборка (на машине разработчика стоит 2.6.0+cu124),
+# поставьте torch отдельно из индекса PyTorch, ДО установки requirements.txt:
+#
+#     pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+#
+# Проверка:
+#     python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# На машине разработчика печатает: 2.6.0+cu124 True
+
+# --- ядро RL ---
+gymnasium==1.0.0            # API среды: reset / step / observation_space / action_space
+stable-baselines3==2.4.1    # готовый PPO, VecEnv, колбэки, evaluate_policy
+torch==2.6.0                # бэкенд нейросетей для SB3 (на машине разработчика 2.6.0+cu124)
+numpy==2.0.2                # массивы наблюдений и действий; SB3 2.4.1 работает с numpy 2.x
+cloudpickle==3.0.0          # сериализация среды для SubprocVecEnv (зависимость SB3)
+pandas==3.0.2               # логгер прогресса SB3 (зависимость SB3)
+
+# --- физика ---
+mujoco==3.9.0               # физический движок и viewer: MJCF-модели урока 14
+
+# --- графики, кадры, логи ---
+matplotlib==3.10.9          # кривые обучения, схемы сред, траектории
+pillow==12.2.0              # PIL.Image: кадры эпизодов и анимации
+tensorboard==2.20.0         # просмотр логов обучения: tensorboard --logdir logs

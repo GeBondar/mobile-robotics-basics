@@ -380,4 +380,4 @@ if abs(self.theta) > 0.5:
 
 - [physics_robotics.docx](./physics_robotics.docx) — вывод физики: моменты инерции, ЦМ, уравнения движения.
 - [lqr_theory.docx](./lqr_theory.docx) — теория LQR от собственных чисел до уравнения Риккати.
-- [TurtleBot3 simulation](https://github.com/GeBondar/mobile-robotics-basics/blob/main/lesson%2011%20(turtlebot3%20sim)/README.md) — аналог для сравнения.
+- [TurtleBot3 simulation](<../lesson 11 (turtlebot3 sim)/README.md>) — аналог для сравнения.

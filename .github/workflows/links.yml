@@ -1,0 +1,48 @@
+name: Проверка ссылок
+
+# Проверяем на каждый push в любую ветку и на каждый pull request.
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: links-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-links:
+    name: Локальные ссылки и таблица уроков
+    runs-on: ubuntu-latest
+
+    env:
+      # Сообщения скрипта на русском: заставляем Python писать в UTF-8.
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+
+    steps:
+      - name: Забрать репозиторий
+        uses: actions/checkout@v4
+        with:
+          # Подмодули и чужие репозитории приложения Б не нужны:
+          # они всё равно исключены из проверки.
+          submodules: false
+
+      - name: Поставить Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Локальные ссылки во всех .md
+        run: python tools/check_links.py --no-readme-table --stats
+
+      - name: Таблица уроков в README.md
+        # Выполняется даже если предыдущий шаг упал: так в одном прогоне
+        # видно сразу обе группы проблем.
+        if: always()
+        run: python tools/check_links.py --only-readme-table

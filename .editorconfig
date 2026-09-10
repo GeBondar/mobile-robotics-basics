@@ -1,0 +1,64 @@
+# Единый стиль файлов курса.
+# Согласовано с .gitattributes (в репозитории LF, .bat/.ps1 — CRLF).
+# https://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# --- Python: 4 пробела (PEP 8) ---
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 88
+
+# --- XML и всё, что на нём основано: URDF, Xacro, SDF, модели MuJoCo ---
+[*.{xml,urdf,xacro,sdf,world,launch,svg,rviz}]
+indent_style = space
+indent_size = 2
+
+# --- YAML: отступ 2, табы запрещены самим форматом ---
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+# --- JSON и TOML рядом с конфигами ---
+[*.{json,toml,cfg,ini}]
+indent_style = space
+indent_size = 2
+
+# --- Markdown: два пробела в конце строки — это перенос строки, не мусор.
+#     Резать trailing whitespace в статьях курса нельзя. ---
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# --- Shell-скрипты ---
+[*.sh]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+
+# --- Windows-скрипты: CRLF, как в .gitattributes ---
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
+# --- CMake пакетов ament_cmake ---
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+# --- Лицензии и текстовые вложения: не переформатировать ---
+[{LICENSE,LICENSE-TEXT,NOTICE,*.txt}]
+trim_trailing_whitespace = false
+insert_final_newline = true

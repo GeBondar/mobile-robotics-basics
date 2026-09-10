@@ -210,7 +210,9 @@ model.learn(total_timesteps=50_000)
 
 1. Запустите `train_cartpole.py` с `TOTAL_TIMESTEPS = 10_000`. Какой балл набирает модель?
 2. Обучите агента без `deterministic=True` в демонстрации. Что изменилось и почему?
-3. Замените среду на `LunarLander-v2` (`pip install box2d-py`). Сколько шагов нужно, чтобы агент научился сажать модуль?
+3. Замените среду на `LunarLander-v3` (нужен Box2D: `pip install swig`, затем
+   `pip install "gymnasium[box2d]"`). Сколько шагов нужно, чтобы агент научился сажать модуль?
+   Версия `v2` на gymnasium 1.0 снята: `gym.make("LunarLander-v2")` падает с `DeprecatedEnv`.
 4. Откройте TensorBoard во время обучения и найдите график `rollout/ep_rew_mean`.
 
 ---
