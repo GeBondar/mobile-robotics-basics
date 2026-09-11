@@ -102,6 +102,10 @@ _EXPORTS = {
     "probe_termination": ("probes", "probe_termination"),
     "probe_step_cost": ("probes", "probe_step_cost"),
     "probe_cameras": ("probes", "probe_cameras"),
+    # render
+    "tracking_camera": ("render", "tracking_camera"),
+    "record_frames": ("render", "record_frames"),
+    "save_gif": ("render", "save_gif"),
     "probe_observability": ("probes", "probe_observability"),
     "probe_controller_sweep": ("probes", "probe_controller_sweep"),
     "probe_report": ("probes", "report"),
