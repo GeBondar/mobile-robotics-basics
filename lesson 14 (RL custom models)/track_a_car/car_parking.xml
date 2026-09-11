@@ -1,0 +1,184 @@
+<mujoco model="car_parking">
+  <!-- ======================================================================
+       МОДЕЛЬ ПАРКОВКИ, ТРЕК А урока 14 «RL: свои модели и среды».
+
+       Отличия от старой версии (все — следствие замеров, отчёт разбора
+       04_lesson14_code.md, §1.1, §4.1, §4.2):
+
+       1. Приводы задних колёс — <velocity>, а не <position kp kv>.
+          Старый вариант держал уставку `_roll_target`, которую среда
+          интегрировала сама: `_roll_target += a[1]*V_MAX*dt`. Эта уставка
+          НЕ входила в наблюдение, и два состояния с побитово одинаковым obs
+          давали vx=0.0000 и vx=0.2773 (04_lesson14_code.md §1.1). Среда была
+          POMDP. У <velocity> команда — сама скорость колеса, интегратора нет,
+          состояние привода целиком в qvel.
+
+       2. Замеренные пределы вместо заявленных. Старая версия обещала
+          «±1.1 м/с», а выдавала пик 1.348 м/с (+24.8 %, §4.2). Здесь пик
+          0.992 м/с при заявленном пределе 1.0 м/с — заявка не нарушается.
+
+       Все числа ниже получены прогонами
+       .../scratchpad/analysis/build/track_a/m1_kv_sweep.py, m4_steer_slip.py,
+       m5_final.py на mujoco 3.9.0.
+       ====================================================================== -->
+
+  <compiler angle="radian" autolimits="true"/>
+
+  <!-- timestep 0.01 с — физика. Частота ПОЛИТИКИ задаётся в car_env.py через
+       FRAME_SKIP=5, то есть 20 Гц. Почему не 100 Гц, как раньше: при
+       gamma=0.99 и 100 Гц эффективный горизонт dt/(1-gamma) = 1.0 с против
+       6 с эпизода, и терминальные +100 стоили в дисконтированной цели 0.38
+       (04_lesson14_code.md §2.3). -->
+  <option timestep="0.01" integrator="Euler" iterations="50" ls_iterations="25"
+          gravity="0 0 -9.81" cone="elliptic" impratio="5"/>
+
+  <size memory="8M"/>
+
+  <visual>
+    <global offwidth="1280" offheight="960"/>
+    <headlight diffuse="0.7 0.7 0.7" ambient="0.35 0.35 0.35" specular="0.2 0.2 0.2"/>
+  </visual>
+
+  <statistic center="2.5 0 0.2" extent="7"/>
+
+  <default>
+    <geom condim="3" solimp="0.98 0.95 0.001" solref="0.008 1" friction="0.9 0.005 0.0001"/>
+    <default class="visual">
+      <geom contype="0" conaffinity="0"/>
+    </default>
+  </default>
+
+  <asset>
+    <material name="asphalt" rgba="0.3 0.31 0.33 1"/>
+    <material name="white" rgba="0.92 0.92 0.92 1"/>
+    <material name="yellow" rgba="1 0.85 0.1 1"/>
+    <material name="car_body" rgba="0.85 0.2 0.15 1"/>
+    <material name="car_cabin" rgba="0.15 0.25 0.4 1"/>
+    <material name="wheel_mat" rgba="0.12 0.12 0.13 1"/>
+    <material name="parked_mat" rgba="0.2 0.4 0.7 1"/>
+    <material name="wall_mat" rgba="0.6 0.55 0.5 1"/>
+  </asset>
+
+  <worldbody>
+    <light name="sun" pos="0 0 8" dir="0 0 -1" diffuse="0.85 0.85 0.85"/>
+
+    <camera name="top" mode="fixed" pos="3.4 0 8" euler="-90 0 0" fovy="48"/>
+
+    <!-- трение пола 0.9: при нём момент 0.8 Н·м на колесе ещё НЕ вызывает
+         пробуксовки (замер m4_steer_slip.py: проскальзывание 0.004 рад/с),
+         а 1.5 Н·м уже вызывает 3.13 рад/с при том же ускорении кузова. -->
+    <geom name="floor" type="plane" size="9 9 0.5" pos="0 0 0" material="asphalt" friction="0.9 0.7 0.0001"/>
+
+    <!-- стены парковки -->
+    <geom name="wall_back"  type="box" size="0.05 1.4 0.08"  pos="-0.2 0 0.08" material="wall_mat"/>
+    <geom name="wall_left"  type="box" size="3.4 0.05 0.08"  pos="3.4 -3.4 0.08" material="wall_mat"/>
+    <geom name="wall_right" type="box" size="3.4 0.05 0.08"  pos="3.4 3.4 0.08" material="wall_mat"/>
+    <geom name="wall_far"   type="box" size="0.05 3.45 0.08" pos="6.8 0 0.08" material="wall_mat"/>
+
+    <!-- разметка парковки (визуальная, contype=0) -->
+    <geom name="line_back"  type="box" size="0.015 1.8 0.008"   pos="0.1 0 0.004" material="white" class="visual"/>
+    <geom name="line_front" type="box" size="0.015 1.8 0.008"   pos="1.4 0 0.004" material="white" class="visual"/>
+    <geom name="line_sep_l" type="box" size="0.65 0.015 0.008"  pos="0.75 -0.6 0.004" material="white" class="visual"/>
+    <geom name="line_sep_r" type="box" size="0.65 0.015 0.008"  pos="0.75 0.6 0.004" material="white" class="visual"/>
+    <geom name="line_road"  type="box" size="0.015 3.45 0.008"  pos="4.6 0 0.004" material="white" class="visual"/>
+
+    <!-- рамка целевого места: x от 0.015 до 1.385, y от -0.59 до 0.59.
+         Ворота успеха в car_env.py подобраны так, чтобы габарит машины
+         (полудлина 0.46 м по бамперам, полуширина 0.265 м по колёсам)
+         при любой допустимой позе оставался внутри этой рамки. -->
+    <geom name="target_top"    type="box" size="0.7 0.012 0.008"    pos="0.7 0.59 0.004" material="yellow" class="visual"/>
+    <geom name="target_bottom" type="box" size="0.7 0.012 0.008"    pos="0.7 -0.59 0.004" material="yellow" class="visual"/>
+    <geom name="target_left"   type="box" size="0.012 0.6 0.008"   pos="0.015 0 0.004" material="yellow" class="visual"/>
+    <geom name="target_right"  type="box" size="0.012 0.6 0.008"   pos="1.385 0 0.004" material="yellow" class="visual"/>
+
+    <!-- занятые соседние места: ближние грани на y = -0.99 и y = +0.99 -->
+    <body name="parked_l" pos="0 0 0">
+      <geom name="parked_l_geom" type="box" size="0.45 0.21 0.08" pos="0.7 -1.2 0.08" material="parked_mat"/>
+      <geom name="parked_l_cabin" type="box" size="0.22 0.19 0.07" pos="0.62 -1.2 0.16" material="car_cabin"/>
+    </body>
+    <body name="parked_r" pos="0 0 0">
+      <geom name="parked_r_geom" type="box" size="0.45 0.21 0.08" pos="0.7 1.2 0.08" material="parked_mat"/>
+      <geom name="parked_r_cabin" type="box" size="0.22 0.19 0.07" pos="0.62 1.2 0.16" material="car_cabin"/>
+    </body>
+
+    <!-- машина: переднее рулевое управление, задний привод.
+         Масса: 3.0 (кузов) + 0.6 (кабина) + 2*0.05 (бамперы) + 4*0.15 (колёса)
+         = 4.30 кг. Именно из неё считается предел сцепления ниже. -->
+    <body name="car" pos="4.2 0 0.06">
+      <!-- damping 0.2 на свободном шарнире — искусственное сопротивление среды.
+           Оно гасит паразитное скольжение кузова боком; без него эллиптический
+           конус трения при impratio=5 даёт заметный дрейф на месте. -->
+      <joint name="car_free" type="free" damping="0.2"/>
+      <geom name="chassis" type="box" size="0.42 0.16 0.035" pos="0 0 0.035" mass="3.0" material="car_body"/>
+      <geom name="cabin" type="box" size="0.24 0.15 0.05" pos="0 0 0.09" mass="0.6" material="car_cabin"/>
+      <geom name="bumper_f" type="box" size="0.03 0.13 0.03" pos="0.43 0 0.03" mass="0.05" material="car_body"/>
+      <geom name="bumper_b" type="box" size="0.03 0.13 0.03" pos="-0.43 0 0.03" mass="0.05" material="car_body"/>
+
+      <!-- damping рулевых шарниров 0.6, а не 0.3: при kp=20 и damping=0.3
+           отклик на ступеньку 0.5 рад перерегулирует до 0.5354 рад (+7 %,
+           замер m5_final.py), то есть выскакивает за механический предел
+           range="-0.5 0.5". При damping=0.6 пик 0.5098 (+2 %), выход на 90 %
+           за 0.060 с — это 1.2 шага политики при dt=0.05 с. -->
+      <body name="wheel_fr" pos="0.22 0.24 0">
+        <joint name="steer_fr" type="hinge" axis="0 0 1" limited="true" range="-0.5 0.5" damping="0.6"/>
+        <joint name="roll_fr" type="hinge" axis="0 1 0" armature="0.01" frictionloss="0.01"/>
+        <geom name="wheel_fr_geom" type="capsule" size="0.06 0.025" quat="0.7071 0.7071 0 0" mass="0.15" material="wheel_mat" friction="0.9 0.7 0.0001"/>
+      </body>
+      <body name="wheel_fl" pos="0.22 -0.24 0">
+        <joint name="steer_fl" type="hinge" axis="0 0 1" limited="true" range="-0.5 0.5" damping="0.6"/>
+        <joint name="roll_fl" type="hinge" axis="0 1 0" armature="0.01" frictionloss="0.01"/>
+        <geom name="wheel_fl_geom" type="capsule" size="0.06 0.025" quat="0.7071 0.7071 0 0" mass="0.15" material="wheel_mat" friction="0.9 0.7 0.0001"/>
+      </body>
+      <body name="wheel_rr" pos="-0.22 0.24 0">
+        <joint name="roll_rr" type="hinge" axis="0 1 0" armature="0.01" frictionloss="0.01"/>
+        <geom name="wheel_rr_geom" type="capsule" size="0.06 0.025" quat="0.7071 0.7071 0 0" mass="0.15" material="wheel_mat" friction="0.9 0.7 0.0001"/>
+      </body>
+      <body name="wheel_rl" pos="-0.22 -0.24 0">
+        <joint name="roll_rl" type="hinge" axis="0 1 0" armature="0.01" frictionloss="0.01"/>
+        <geom name="wheel_rl_geom" type="capsule" size="0.06 0.025" quat="0.7071 0.7071 0 0" mass="0.15" material="wheel_mat" friction="0.9 0.7 0.0001"/>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- РУЛЬ. kp=20, а не 10: при kp=10 установившийся угол 0.4848 рад на
+         команду 0.500 — просадка 3 %, то есть заявленный предел руля
+         не выдерживался. При kp=20 установившийся 0.5039 (замер m5_final.py).
+         Выход на 90 % за 0.060 с — быстрее, чем нужно на 20 Гц. -->
+    <position name="steer_l" joint="steer_fl" kp="20" ctrllimited="true" ctrlrange="-0.5 0.5"/>
+    <position name="steer_r" joint="steer_fr" kp="20" ctrllimited="true" ctrlrange="-0.5 0.5"/>
+
+    <!-- ТЯГА. velocity-приводы: момент = kv*(ctrl - w_колеса).
+         ctrl — угловая скорость колеса, рад/с. Скрытого интегратора нет.
+
+         ctrlrange ±16.6667 рад/с = 1.0 м/с / 0.06 м (радиус колеса).
+           Замеренный пик кузова при полной команде: 0.992 м/с — заявленный
+           предел НЕ превышается (у старой версии было 1.348 против 1.080).
+
+         kv=0.20 (свип m1_kv_sweep.py при forcerange=0.8):
+           kv=0.05 -> выход на 90 % за 1.47 с, ошибка слежения 0.53 рад/с
+           kv=0.20 -> 0.59 с, ошибка 0.130 рад/с (0.8 % команды)
+           kv=0.50 -> 0.45 с, ошибка 0.052 рад/с   <- плато, дальше не растёт
+         Выбрана точка ВНУТРИ плато, а не на его краю.
+
+         forcerange ±0.8 Н·м — предел сцепления (замер m4_steer_slip.py,
+         разгон 0.3 с на свободной прямой):
+           0.8 Н·м -> проскальзывание 0.004 рад/с, ускорение 1.66 м/с^2
+           1.0 Н·м -> проскальзывание 0.473 рад/с, ускорение 2.07 м/с^2
+           1.5 Н·м -> проскальзывание 3.134 рад/с, ускорение 2.16 м/с^2
+         То есть выше 0.8 Н·м момент уходит в пробуксовку, а не в ускорение.
+
+         Что это даёт манёвру (m5_final.py, forcerange=0.8):
+           разгон до 90 % предела  0.59 с
+           накат до 0.1 м/с        0.55 с / 0.279 м
+           реверс до 0.1 м/с       0.51 с / 0.274 м
+         Тормозной путь 0.274 м — это 20 % глубины места (1.37 м).
+         У старой версии было 0.81 м, то есть 58 % глубины. -->
+    <velocity name="drive_l" joint="roll_rl" kv="0.20"
+              ctrllimited="true" ctrlrange="-16.6667 16.6667"
+              forcelimited="true" forcerange="-0.8 0.8"/>
+    <velocity name="drive_r" joint="roll_rr" kv="0.20"
+              ctrllimited="true" ctrlrange="-16.6667 16.6667"
+              forcelimited="true" forcerange="-0.8 0.8"/>
+  </actuator>
+</mujoco>

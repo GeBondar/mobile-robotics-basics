@@ -1,0 +1,90 @@
+<mujoco model="tsaplya2_foot">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" iterations="60" solver="Newton">
+    <flag eulerdamp="disable"/>
+  </option>
+  <default>
+    <joint limited="true"/>
+    <geom condim="3" contype="1" conaffinity="1"/>
+  </default>
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.7 0.7 0.7"/>
+    <quality shadowsize="4096"/>
+  </visual>
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512"
+             rgb1="0.92 0.92 0.90" rgb2="0.82 0.83 0.81"/>
+    <material name="grid" texture="grid" texrepeat="6 6" reflectance="0.05"/>
+  </asset>
+  <worldbody>
+    <geom name="floor" type="plane" size="30 30 0.1" material="grid" friction="1.0 0.02 0.001"/>
+    <light pos="1 -1 3" dir="-0.4 0.4 -1"/>
+    <body name="trunk" pos="0 0 0.4272">
+      <freejoint name="root"/>
+      <geom type="box" size="0.130 0.090 0.075" pos="0 0 0.1900"
+            mass="15.325" rgba="0.13 0.14 0.15 1"/>
+      <site name="imu" pos="0 0 0.0700" size="0.01"/>
+
+      <body name="left_yaw_unit" pos="0 0.0600 0.0700">
+        <joint name="left_yaw" axis="0 0 1" range="-1.0472 1.0472" damping="0.4" armature="0.03"/>
+        <geom type="cylinder" size="0.038 0.035" mass="1.835" rgba="0.25 0.26 0.28 1"/>
+        <body name="left_hip_block" pos="0 0 -0.0700">
+          <joint name="left_roll" axis="1 0 0" range="-0.6981 0.6981" damping="0.5" armature="0.04"/>
+          <geom type="cylinder" size="0.056 0.048" pos="0 0.0475 0" euler="1.5708 0 0"
+                mass="4.570" rgba="0.42 0.46 0.50 1"/>
+          <body name="left_thigh" pos="0 0.0950 0">
+            <joint name="left_hip" axis="0 1 0" range="-0.7854 0.7854" damping="0.5" armature="0.04"/>
+            <geom type="capsule" fromto="0 0 0 0.1302 0 -0.2016" size="0.022" mass="1.648" rgba="0.72 0.74 0.78 1"/>
+            <body name="left_calf" pos="0.1302 0 -0.2016">
+              <joint name="left_knee" axis="0 1 0" range="-0.8674 1.0175" damping="0.5" armature="0.04"/>
+              <geom type="capsule" fromto="0 0 0 -0.1302 0 -0.2016" size="0.016" mass="0.639" rgba="0.72 0.74 0.78 1"/>
+                <body name="left_foot" pos="-0.1302 0 -0.2016">
+                  <geom name="left_foot" type="sphere" size="0.0240" mass="0.172"
+                        friction="1.0 0.02 0.001" solimp="0.9 0.95 0.001" solref="0.008 1"
+                        rgba="0.75 0.35 0.12 1"/>
+                </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="right_yaw_unit" pos="0 -0.0600 0.0700">
+        <joint name="right_yaw" axis="0 0 1" range="-1.0472 1.0472" damping="0.4" armature="0.03"/>
+        <geom type="cylinder" size="0.038 0.035" mass="1.835" rgba="0.25 0.26 0.28 1"/>
+        <body name="right_hip_block" pos="0 0 -0.0700">
+          <joint name="right_roll" axis="1 0 0" range="-0.6981 0.6981" damping="0.5" armature="0.04"/>
+          <geom type="cylinder" size="0.056 0.048" pos="0 -0.0475 0" euler="1.5708 0 0"
+                mass="4.570" rgba="0.42 0.46 0.50 1"/>
+          <body name="right_thigh" pos="0 -0.0950 0">
+            <joint name="right_hip" axis="0 1 0" range="-0.7854 0.7854" damping="0.5" armature="0.04"/>
+            <geom type="capsule" fromto="0 0 0 0.1302 0 -0.2016" size="0.022" mass="1.648" rgba="0.72 0.74 0.78 1"/>
+            <body name="right_calf" pos="0.1302 0 -0.2016">
+              <joint name="right_knee" axis="0 1 0" range="-0.8674 1.0175" damping="0.5" armature="0.04"/>
+              <geom type="capsule" fromto="0 0 0 -0.1302 0 -0.2016" size="0.016" mass="0.639" rgba="0.72 0.74 0.78 1"/>
+                <body name="right_foot" pos="-0.1302 0 -0.2016">
+                  <geom name="right_foot" type="sphere" size="0.0240" mass="0.172"
+                        friction="1.0 0.02 0.001" solimp="0.9 0.95 0.001" solref="0.008 1"
+                        rgba="0.75 0.35 0.12 1"/>
+                </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="left_yaw" joint="left_yaw" kp="100.3" kv="3.01" forcerange="-30.10 30.10" ctrlrange="-1.0472 1.0472"/>
+    <position name="left_roll" joint="left_roll" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.6981 0.6981"/>
+    <position name="left_hip" joint="left_hip" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.7854 0.7854"/>
+    <position name="left_knee" joint="left_knee" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.8674 1.0175"/>
+    <position name="right_yaw" joint="right_yaw" kp="100.3" kv="3.01" forcerange="-30.10 30.10" ctrlrange="-1.0472 1.0472"/>
+    <position name="right_roll" joint="right_roll" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.6981 0.6981"/>
+    <position name="right_hip" joint="right_hip" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.7854 0.7854"/>
+    <position name="right_knee" joint="right_knee" kp="376.2" kv="11.29" forcerange="-112.86 112.86" ctrlrange="-0.8674 1.0175"/>
+  </actuator>
+  <sensor>
+    <gyro site="imu" name="gyro"/>
+    <accelerometer site="imu" name="accel"/>
+    <framequat objtype="site" objname="imu" name="orientation"/>
+  </sensor>
+</mujoco>
