@@ -87,7 +87,7 @@ lesson 7 (TF2)/
   (`lesson 7 (TF2)/README.md:19`). Код Python-уроков без ROS 2 (RL, MuJoCo) — в подпапке урока
   (`code/` либо папки треков), рядом с ним локальный `.gitignore`, если урок порождает веса и логи.
 - Два урока с одним номером не создаём. На момент написания в корне есть коллизия
-  `lesson 14 (mujoco car parking)` и `lesson 14 (RL custom models)` — она подлежит разрешению,
+  `lesson 14 (RL custom models)` и `lesson 14 (RL custom models)` — она подлежит разрешению,
   а не тиражированию.
 
 ---

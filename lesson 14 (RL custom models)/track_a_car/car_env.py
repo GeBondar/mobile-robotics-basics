@@ -36,7 +36,7 @@
     a[0] -> угол руля,   a[0] * 0.5 рад
     a[1] -> скорость задних колёс, a[1] * 16.6667 рад/с = a[1] * 1.0 м/с
 
-НАБЛЮДЕНИЕ (15 чисел, см. _observation)
+НАБЛЮДЕНИЕ (16 чисел, см. _observation)
     границы объявлены по ЗАМЕРУ, а не «с запасом» (§1.5)
 
 НАГРАДА
@@ -293,7 +293,8 @@ class CarParkingEnv(gym.Env):
              -2.5, -2.5, -4.0,                       # vx, vy, omega
              -0.6, -12.0, -1.2,                      # steer, steer_rate, wheel_v
              0.0, OOB_X_MIN, -OOB_Y_ABS,             # dist, x, y
-             0.0, 0.0],                              # d_left, d_right
+             0.0, 0.0,                               # d_left, d_right
+             0.0],                                   # hold_progress
             dtype=np.float32,
         )
         obs_high = np.array(
@@ -301,7 +302,8 @@ class CarParkingEnv(gym.Env):
              2.5, 2.5, 4.0,
              0.6, 12.0, 1.2,
              arena_diag, OOB_X_MAX, OOB_Y_ABS,
-             7.6, 7.6],
+             7.6, 7.6,
+             1.0],
             dtype=np.float32,
         )
         self.observation_space = spaces.Box(low=obs_low, high=obs_high, dtype=np.float32)
@@ -654,11 +656,20 @@ class CarParkingEnv(gym.Env):
         return float(w) * WHEEL_RADIUS
 
     def _observation(self) -> np.ndarray:
-        """15 чисел.
+        """16 чисел.
 
-        Три из них добавлены против старой версии и закрывают блокер Б1:
+        Три добавлены против старой версии и закрывают блокер Б1:
         `steer_rate` и `wheel_v` — состояние приводов; без них политика не
         могла предсказать, поедет ли машина от команды «ноль» (§1.1).
+
+        Шестнадцатое — `hold_progress` = _hold / SUCCESS_HOLD. Счётчик
+        удержания в воротах решает, оборвётся ли эпизод успехом и придёт ли
+        терминальная награда, но сам по себе НЕ выводится из позы: два
+        состояния с побитово одинаковыми первыми 15 числами и одним и тем же
+        действием давали награду +0.030 и +100.030. То есть это было ровно
+        то скрытое состояние, про которое глава 02 и написана. Держать такой
+        счётчик вне наблюдения нельзя — среда обязана быть марковской
+        целиком, а не в той части, которую легко заметить.
         """
         x, y, yaw = self._pose()
         dx, dy = SPOT - np.array([x, y])
@@ -677,7 +688,8 @@ class CarParkingEnv(gym.Env):
              math.hypot(dx, dy),                    # 10 расстояние до места
              x, y,                                  # 11,12 положение в мире
              float(np.linalg.norm([x - PARKED_L[0], y - PARKED_L[1]])),   # 13
-             float(np.linalg.norm([x - PARKED_R[0], y - PARKED_R[1]]))],  # 14
+             float(np.linalg.norm([x - PARKED_R[0], y - PARKED_R[1]])),   # 14
+             self._hold / SUCCESS_HOLD],            # 15 прогресс удержания
             dtype=np.float32,
         )
 

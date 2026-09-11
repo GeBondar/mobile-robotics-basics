@@ -1028,17 +1028,21 @@ def check_readme_table(root, problems):
                         % name,
                     )
                 )
+    # Приложения — НЕ уроки, и в нумерованной таблице им не место.
+    # Требование к ним мягче: на приложение должна быть ссылка где-нибудь
+    # в README, неважно, в таблице или в тексте под ней.
+    readme_text = "".join(lines)
     for letter in sorted(appendices):
         for name in appendices[letter]:
-            if name not in referenced_dirs:
+            if name not in referenced_dirs and name not in readme_text:
                 problems.append(
                     Problem(
                         "error",
                         readme_rel,
                         start + 1,
                         1,
-                        "каталог `%s` есть на диске, но его нет в таблице уроков"
-                        % name,
+                        "приложение `%s` есть на диске, но на него нет "
+                        "ни одной ссылки из README" % name,
                     )
                 )
 

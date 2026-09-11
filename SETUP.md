@@ -457,7 +457,7 @@ pip install -r requirements.txt
 
 * [урок 13](<lesson 13 (stable baselines3)/README.md>):
   `pip install stable-baselines3 gymnasium matplotlib pillow tensorboard`;
-* [урок 14, трек A](<lesson 14 (mujoco car parking)/README.md>):
+* [урок 14, трек A](<lesson 14 (RL custom models)/README.md>):
   `pip install mujoco stable-baselines3 gymnasium matplotlib pillow`.
 
 `requirements.txt` — объединение этих двух наборов с зафиксированными версиями.
@@ -544,10 +544,10 @@ python evaluate_cartpole.py
 
 Урок 14, трек A. Осторожно с каталогом: урок 14 строится в `lesson 14 (RL custom models)`
 (треки A/B/C, статей там пока нет), а рабочий код парковки, который станет треком A, до сих пор
-лежит в отдельном каталоге `lesson 14 (mujoco car parking)`. Запускается пока он:
+лежит в отдельном каталоге `lesson 14 (RL custom models)`. Запускается пока он:
 
 ```bash
-cd "lesson 14 (mujoco car parking)/code"
+cd "lesson 14 (RL custom models)/track_a_car"
 python car_parking_env.py     # проверка среды
 python train_parking.py       # обучение (~30-40 мин на CPU)
 python evaluate_parking.py    # анимация и траектории

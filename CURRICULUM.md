@@ -653,8 +653,8 @@ transport/graph, обосновывает выбор transport, приводит
 > `diagnostics.py`, `probes.py`, `rewards.py`) и заготовки треков
 > (`track_a_car/`, `track_b_walk/`, `track_c_drone/`) — **ни одной статьи ещё не написано**,
 > каталог `images/` пуст. Прежний урок про парковку лежит отдельным каталогом
-> [lesson 14 (mujoco car parking)](<lesson 14 (mujoco car parking)/README.md>) с одной статьёй
-> [parking_car.md](<lesson 14 (mujoco car parking)/parking_car.md>) и в новом уроке становится
+> [lesson 14 (RL custom models)](<lesson 14 (RL custom models)/README.md>) с одной статьёй
+> [parking_car.md](<lesson 14 (RL custom models)/track_a_car/README.md>) и в новом уроке становится
 > треком A. Ниже — проектная цель и измеренные бюджеты обучения из отчётов разбора;
 > формулировки статей, контрольных вопросов и критерия приёмки будут уточнены после написания
 > текстов.
