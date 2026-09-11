@@ -80,6 +80,7 @@ __all__ = [
     "probe_reward_terms",
     "probe_termination",
     "probe_step_cost",
+    "probe_cameras",
     "probe_observability",
     "probe_controller_sweep",
     "report",
@@ -368,6 +369,58 @@ def probe_step_cost(env, n: int = 2000, dt: Optional[float] = None, seed: int = 
 # Наблюдаемость
 # ---------------------------------------------------------------------------
 
+
+
+def probe_cameras(model, width: int = 240, height: int = 180,
+                  min_mean: float = 5.0, min_colors: int = 16) -> Table:
+    """Каждая камера модели: даёт ли она непустой кадр.
+
+    ЗАЧЕМ. Чёрный кадр принято лечить как проблему OpenGL. В этом уроке он
+    оказался проблемой ГЕОМЕТРИИ: камера вида сверху несла `euler="-90 0 0"`,
+    то есть соглашение ФРОНТАЛЬНОЙ камеры. Камера MuJoCo по умолчанию смотрит
+    вдоль своей оси -Z (верх кадра - ось +Y), поэтому виду сверху поворот не
+    нужен вовсе, а этот разворачивал взгляд вдоль -Y: камера с высоты восьми
+    метров смотрела горизонтально, в пустоту. Замер: свободная камера давала
+    яркость 82.45 и 1305 цветов, камера "top" - 0.00 и 1 цвет.
+
+    Дефект жил в модели с самого начала и обнаружился только на этапе
+    иллюстраций, когда гифка записалась в 1563 байта. Две строки проверки
+    стоят дешевле, чем поиск причины в OpenGL.
+
+    ЧИТАТЬ ТАК. Строка `(свободная)` - контрольная: если пуста она, дело
+    действительно в GL-контексте (headless, контейнер, WSL2 без WSLg), и
+    камеры тут ни при чём. Если свободная в порядке, а именованная пуста -
+    виновата её поза.
+    """
+    import mujoco  # ленивый импорт: ядро не тянет mujoco
+
+    rows: Table = []
+    renderer = mujoco.Renderer(model, height=height, width=width)
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+    try:
+        names = [None] + [
+            mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_CAMERA, i)
+            for i in range(model.ncam)
+        ]
+        for cam in names:
+            if cam is None:
+                renderer.update_scene(data)
+            else:
+                renderer.update_scene(data, camera=cam)
+            frame = renderer.render()
+            mean = float(frame.mean())
+            colors = int(len({tuple(px) for px in frame.reshape(-1, frame.shape[-1])[::7]}))
+            ok = mean >= min_mean and colors >= min_colors
+            rows.append({
+                "камера": cam or "(свободная)",
+                "яркость": round(mean, 2),
+                "цветов": colors,
+                "вердикт": "OK" if ok else "ПУСТО — проверьте позу камеры",
+            })
+    finally:
+        renderer.close()
+    return rows
 
 def probe_observability(
     env,

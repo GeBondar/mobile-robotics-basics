@@ -101,6 +101,7 @@ _EXPORTS = {
     "probe_reward_terms": ("probes", "probe_reward_terms"),
     "probe_termination": ("probes", "probe_termination"),
     "probe_step_cost": ("probes", "probe_step_cost"),
+    "probe_cameras": ("probes", "probe_cameras"),
     "probe_observability": ("probes", "probe_observability"),
     "probe_controller_sweep": ("probes", "probe_controller_sweep"),
     "probe_report": ("probes", "report"),
@@ -134,7 +135,8 @@ __all__ = [
     "periodic_gait", "null_policy_baseline", "reachability", "term_share_table",
     # probes
     "probe_shapes", "probe_action_scale", "probe_null_baseline", "probe_reward_terms",
-    "probe_termination", "probe_step_cost", "probe_observability",
+    "probe_termination", "probe_step_cost",
+    "probe_cameras", "probe_observability",
     "probe_controller_sweep", "probe_report",
     "__version__",
 ]
