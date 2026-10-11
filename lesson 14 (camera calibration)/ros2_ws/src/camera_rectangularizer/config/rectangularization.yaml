@@ -1,0 +1,7 @@
+camera_rectangularizer:
+  ros__parameters:
+    input_image_topic: /camera/image_raw
+    camera_info_topic: /camera/camera_info
+    source_points: [120.0, 80.0, 520.0, 100.0, 570.0, 420.0, 70.0, 400.0]
+    output_width: 640
+    output_height: 480
