@@ -98,6 +98,32 @@ ros2 run rl_policy_ros policy_node --ros-args -p robot:=tsaplya2 -p use_sim_time
 По умолчанию 0.5 с, но `teleop_twist_keyboard` шлёт сообщение только при нажатии, поэтому
 для ручного управления deadman отключён.
 
+## RViz2
+
+Готовый конфиг поднимается тем же launch-файлом:
+
+```bash
+ros2 launch rl_policy_ros walk.launch.py rviz:=true
+```
+
+У ЦАПЛИ нет URDF, поэтому RobotModel показать нечего. Вместо этого `sim_node` публикует в
+`/sim/markers` (`visualization_msgs/MarkerArray`, 10 Гц) все видимые геомы MuJoCo — корпус,
+звенья ног, стопы и объекты мира — с их позами в мире. Меши (у Microduck) рисуются габаритными
+боксами: форма упрощённая, поза и движение настоящие.
+
+Если открываете RViz2 сами, без конфига, пустой экран даёт любая из трёх причин:
+
+| Причина | Что сделать |
+|---|---|
+| Сообщения помечены временем симуляции, а RViz2 живёт по системным часам и выбрасывает их как старые | `rviz2 --ros-args -p use_sim_time:=true` |
+| Fixed Frame по умолчанию `map`, а сим публикует только `odom → base_link → camera_link` | Global Options → Fixed Frame: `odom` |
+| Сенсоры публикуются как Best Effort, а дисплей подписывается как Reliable — такие QoS несовместимы, данные молча не приходят | в дисплее Topic → Reliability Policy: `Best Effort` |
+
+Третью причину сим сообщает сам: `New subscription discovered on topic 'odom', requesting
+incompatible QoS. No messages will be sent to it`. При старте RViz2 с готовым конфигом это
+предупреждение тоже появляется — дважды, на мгновение: дисплей сначала подписывается с
+настройками по умолчанию и только потом применяет Best Effort из файла.
+
 ## Ожидаемый результат
 
 В терминале `sim_node`:
@@ -170,6 +196,15 @@ ros2 service call /set_policy rl_policy_interfaces/srv/SetPolicy "{name: auto}"
    ```
 
    Поверните робота клавишами `j`/`l`, пока в кадре не окажется маркер.
+
+6. Положение камеры на роботе — оптическая рама ROS (ось z вперёд, y вниз):
+
+   ```bash
+   ros2 run tf2_ros tf2_echo base_link camera_link
+   ```
+
+   У ЦАПЛИ: `Translation: [0.130, -0.000, 0.050]`, `RPY (radian) [-1.769, 0.001, -1.571]` —
+   камера на 13 см впереди и 5 см выше центра корпуса, наклонена на 0.2 рад вниз.
 
 ## Итог
 

@@ -16,6 +16,8 @@
   <depend>nav_msgs</depend>
   <depend>rosgraph_msgs</depend>
   <depend>tf2_ros</depend>
+  <depend>visualization_msgs</depend>
+  <exec_depend>rviz2</exec_depend>
   <depend>ament_index_python</depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>

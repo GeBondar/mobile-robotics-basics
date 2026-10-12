@@ -37,8 +37,13 @@ from sensor_msgs.msg import CameraInfo, Image, Imu, JointState
 from std_msgs.msg import Float64MultiArray
 from std_srvs.srv import Trigger
 from tf2_ros import TransformBroadcaster
+from visualization_msgs.msg import MarkerArray
 
 from . import scene
+from .markers import GeomMarkers
+
+# MuJoCo-камера смотрит вдоль -z, y вверх; оптическая рама ROS — вдоль +z, y вниз.
+MJ_TO_OPTICAL = np.diag([1.0, -1.0, -1.0])
 
 
 def stamp(t: float) -> Time:
@@ -61,6 +66,7 @@ class SimNode(Node):
         p("chase_rate", 0.0)           # Гц внешней камеры для видео; 0 — выключить
         p("chase_width", 640)
         p("chase_height", 480)
+        p("markers_rate", 10.0)        # Гц маркеров робота и мира для RViz2; 0 — выключить
         p("real_time_factor", 1.0)
         p("viewer", False)             # окно MuJoCo (нужен дисплей)
         p("spawn", [0.0, 0.0, 0.0])    # x, y, yaw (рад) старта
@@ -87,6 +93,9 @@ class SimNode(Node):
         self.odom_dt = 1.0 / g("odom_rate")
         self.cam_dt = 1.0 / g("camera_rate") if g("camera_rate") > 0 else None
         self.chase_dt = 1.0 / g("chase_rate") if g("chase_rate") > 0 else None
+        self.markers_dt = 1.0 / g("markers_rate") if g("markers_rate") > 0 else None
+        self.geom_markers = GeomMarkers(self.model) if self.markers_dt else None
+        self.cam_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, self.cam_name)
         self.cam_wh = (g("camera_width"), g("camera_height"))
         self.chase_wh = (g("chase_width"), g("chase_height"))
         self.rtf = float(g("real_time_factor"))
@@ -108,6 +117,7 @@ class SimNode(Node):
         self.pub_img = self.create_publisher(Image, "camera/image_raw", sd)
         self.pub_info = self.create_publisher(CameraInfo, "camera/camera_info", sd)
         self.pub_chase = self.create_publisher(Image, "sim/chase/image_raw", sd)
+        self.pub_markers = self.create_publisher(MarkerArray, "sim/markers", 1)
         self.tf = TransformBroadcaster(self)
         self.create_subscription(Float64MultiArray, "joint_commands", self._on_cmd, sd)
         self.create_subscription(Vector3, "sim/push", self._on_push, 10)
@@ -165,7 +175,7 @@ class SimNode(Node):
             from mujoco import viewer as mj_viewer
             viewer = mj_viewer.launch_passive(m, d, show_left_ui=False, show_right_ui=False)
         K = scene.camera_intrinsics(m, self.cam_name, *self.cam_wh) if cam else None
-        t_clock = t_state = t_odom = t_cam = t_chase = 0.0
+        t_clock = t_state = t_odom = t_cam = t_chase = t_mk = 0.0
         wall0, sim0 = time.perf_counter(), d.time
         n_steps, t_log, t_sim_log, lag = 0, time.perf_counter(), d.time, 0.0
         self.n_slips = 0
@@ -205,7 +215,10 @@ class SimNode(Node):
                         t_odom = t
                     self._publish_state(t, with_odom)
                     prof["pub"] = max(prof["pub"], time.perf_counter() - t_d)
-                frame = chase_frame = None
+                frame = chase_frame = geoms = None
+                if self.markers_dt and t - t_mk >= self.markers_dt - 1e-9:
+                    t_mk = t
+                    geoms = (d.geom_xpos.copy(), d.geom_xmat.copy())
                 if cam and t - t_cam >= self.cam_dt - 1e-9:
                     t_cam = t
                     cam.update_scene(d, self.cam_name)
@@ -221,6 +234,8 @@ class SimNode(Node):
                 self._publish_info(K, t)
             if chase_frame is not None:
                 self._publish_image(self.pub_chase, chase_frame, t, "chase")
+            if geoms is not None:
+                self.pub_markers.publish(self.geom_markers.build(*geoms, stamp(t)))
             # Подгонка под настенные часы. Отстали — НЕ догоняем: догонка прогнала бы
             # физику пачкой в десятки миллисекунд, пока политика отвечает старой командой.
             # Вместо этого якорь переносится, симуляция просто идёт медленнее.
@@ -287,7 +302,21 @@ class SimNode(Node):
         tf.transform.translation.y = pp.position.y
         tf.transform.translation.z = pp.position.z
         tf.transform.rotation = pp.orientation
-        self.tf.sendTransform(tf)
+        tfs = [tf]
+        if self.cam_id >= 0:
+            # Камера на голове утки двигается вместе с шеей, поэтому tf динамический.
+            pb = d.qpos[qa:qa + 3]
+            pc = R.T @ (d.cam_xpos[self.cam_id] - pb)
+            Rc = R.T @ d.cam_xmat[self.cam_id].reshape(3, 3) @ MJ_TO_OPTICAL
+            qc = np.zeros(4)
+            mujoco.mju_mat2Quat(qc, Rc.ravel())
+            ct = TransformStamped()
+            ct.header.stamp, ct.header.frame_id, ct.child_frame_id = st, "base_link", "camera_link"
+            ct.transform.translation.x, ct.transform.translation.y, ct.transform.translation.z = map(float, pc)
+            r = ct.transform.rotation
+            r.w, r.x, r.y, r.z = map(float, qc)
+            tfs.append(ct)
+        self.tf.sendTransform(tfs)
 
     def _publish_image(self, pub, rgb, t, frame_id):
         msg = Image()

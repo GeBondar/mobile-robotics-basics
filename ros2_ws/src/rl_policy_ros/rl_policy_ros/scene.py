@@ -26,6 +26,9 @@ class RobotProfile:
     init_joints: tuple | None = None  # стартовая поза суставов (и цели приводов)
     init_ctrl: tuple | None = None    # стартовые команды приводов (тяги дрона)
     camera: str | None = None         # имя готовой камеры в модели
+    # Развернуть готовую камеру на 180° вокруг её оси y: у Microduck head_camera задана
+    # по-CAD-овски (взгляд вдоль +z), а MuJoCo смотрит вдоль -z — то есть внутрь головы.
+    flip_camera: bool = False
     add_camera: dict | None = None    # или добавить: body, pos, xyaxes, fovy
     chase: dict = field(default_factory=lambda: {"distance": 1.0, "elevation": -20.0, "azimuth": 135.0})
 
@@ -44,7 +47,7 @@ def make_profile(robot: str, share: Path) -> RobotProfile:
             model=str(microduck_rl_root() / "src/mjlab_microduck/robot/microduck/scene.xml"),
             base_body="trunk_base", joints=MicroduckContract.JOINTS, timestep=0.005,
             init_z=0.125, init_joints=tuple(MicroduckContract.DEFAULT_POSE),
-            camera="head_camera",
+            camera="head_camera", flip_camera=True,
             chase={"distance": 0.75, "elevation": -18.0, "azimuth": 150.0})
     if robot == "tsaplya2":
         return RobotProfile(
@@ -162,6 +165,13 @@ def build_model(profile: RobotProfile, world_yaml: str | None):
     if profile.timestep:
         spec.option.timestep = profile.timestep
     cam_name = profile.camera
+    if profile.flip_camera:
+        cam = spec.camera(cam_name)
+        q, q2 = np.zeros(4), np.zeros(4)
+        mujoco.mju_mulQuat(q, np.asarray(cam.quat, dtype=float), np.array([0.0, 0.0, 1.0, 0.0]))
+        # и на -90° вокруг оси взгляда: иначе горизонт в кадре вертикальный
+        mujoco.mju_mulQuat(q2, q, np.array([np.sqrt(0.5), 0.0, 0.0, -np.sqrt(0.5)]))
+        cam.quat = q2
     if profile.add_camera:
         c = profile.add_camera
         body = spec.body(c["body"])
