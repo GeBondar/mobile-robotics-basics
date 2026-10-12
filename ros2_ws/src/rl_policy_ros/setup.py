@@ -15,6 +15,8 @@ setup(
         ("share/" + package_name + "/config/worlds", glob("config/worlds/*.yaml")),
         ("share/" + package_name + "/models", glob("models/*.xml")),
         ("share/" + package_name + "/policies", glob("policies/*.onnx") + glob("policies/*.json")),
+        ("share/" + package_name + "/policies/microduck",
+         glob("policies/microduck/*.onnx") + glob("policies/microduck/*.json")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
