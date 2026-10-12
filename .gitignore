@@ -19,6 +19,8 @@ training_log*.txt
 
 # Исключение: готовые политики уроков нужны в репозитории
 !lesson 14 (RL custom models)/track_b_walk/policies/
+# Исключение: MJCF-модели роботов пакета урока 15 — не веса, а описание робота
+!ros2_ws/src/rl_policy_ros/models/
 
 # --- Чужие репозитории, клонируемые локально (приложение Б) ---
 appendix B (microduck policy inference)/microduck/

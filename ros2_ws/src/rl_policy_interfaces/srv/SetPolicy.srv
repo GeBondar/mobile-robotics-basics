@@ -1,0 +1,7 @@
+# Переключить активную политику ноды policy_node.
+# name: "auto" или имя политики из параметра policies ноды (walk, stand, kick_left, ...)
+string name
+---
+bool success
+string message
+string active

@@ -1,0 +1,13 @@
+# Найти цель в кадре и подойти к ней.
+string label            # что искать: "aruco_3", "red"
+float32 stop_distance   # м — где остановиться
+float32 timeout         # с — общий бюджет; 0 — без ограничения
+---
+bool success
+float32 final_distance
+float32 elapsed
+string message
+---
+string state            # SEARCH | APPROACH | DONE
+float32 distance
+float32 bearing

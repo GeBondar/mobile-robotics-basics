@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rl_policy_ros</name>
+  <version>0.1.0</version>
+  <description>RL policies (ONNX) driving MuJoCo robots through ROS 2: sim node, policy node, perception, behaviours (lesson 15).</description>
+  <maintainer email="course@example.com">course</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>rl_policy_interfaces</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>ament_index_python</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <!-- pip: mujoco, onnxruntime, opencv-python-headless (см. README урока 15) -->
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

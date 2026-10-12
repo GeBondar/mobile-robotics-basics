@@ -29,3 +29,5 @@ source install/setup.bash
 - `urdf_tutorial`: примеры URDF/Xacro и launch-файл для визуализации.
 - `urdf_tutorial_r2d2`: пакет с примером `robot_state_publisher`.
 - `learning_tf2_py`: статический и динамический broadcaster, listener и примеры дополнительных фреймов tf2.
+- `rl_policy_interfaces`: `Detection.msg`, `SetPolicy.srv`, `ApproachTarget.action` (урок 15).
+- `rl_policy_ros`: MuJoCo-робот `sim_node` и ONNX-политика `policy_node` за топиками ROS 2 (урок 15). Нужны pip-пакеты `mujoco`, `onnxruntime`, `opencv-python-headless`.

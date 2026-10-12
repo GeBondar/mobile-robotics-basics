@@ -153,6 +153,7 @@ flowchart TD
 | 12 | [micro-ROS](<lesson 12 (micro-ros)/README.md>) | 6 | micro-ROS Agent, ESP-IDF | CPU + ESP32 | ESP32 публикует топики в граф ROS 2 |
 | 13 | [Stable-Baselines3: введение в RL](<lesson 13 (stable baselines3)/README.md>) | 3 | SB3, gymnasium | CPU | PPO решает CartPole-v1 на 500/500 |
 | 14 | [RL: свои модели и среды](<lesson 14 (RL custom models)/README.md>) | — | MuJoCo, SB3 | CPU | Три обученные политики — см. ниже |
+| 15 | [RL-политики под управлением ROS 2](<lesson 15 (RL policies in ROS 2)/README.md>) | 1 (в работе) | MuJoCo, onnxruntime, ROS 2 | CPU | Двуногий идёт по `/cmd_vel` с клавиатуры |
 
 Приложения: **[А — ROS 2 и LLM-агенты](<appendix A (ros2 llm agents)/ros2-mcp-openclaw_1.md>)**,
 **[Б — инференс политик на Microduck](<appendix B (microduck policy inference)/README.md>)**.
