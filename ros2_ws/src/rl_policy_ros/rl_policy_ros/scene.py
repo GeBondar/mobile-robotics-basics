@@ -110,7 +110,10 @@ def add_world(spec: mujoco.MjSpec, world_yaml: str | None) -> list[dict]:
             h = s / 2
             mesh = spec.add_mesh(name=f"mesh_aruco{i}")
             mesh.uservert = [0, h, -h, 0, -h, -h, 0, -h, h, 0, h, h]
-            mesh.usertexcoord = [0, 1, 1, 1, 1, 0, 0, 0]
+            # Смотрящему с +x правая сторона — это +y тела. Вершины 0 и 3 (y = +h) получают
+            # u = 1, иначе маркер выходит ЗЕРКАЛЬНЫМ: издалека его ещё «вытягивает» коррекция
+            # ошибок словаря (с перепутанными углами и дальностью +20 %), вблизи — не находит.
+            mesh.usertexcoord = [1, 1, 0, 1, 0, 0, 1, 0]
             mesh.userface = [0, 2, 1, 0, 3, 2]     # обход против часовой, если смотреть с +x
             mesh.inertia = mujoco.mjtMeshInertia.mjMESH_INERTIA_SHELL
             body.add_geom(type=mujoco.mjtGeom.mjGEOM_MESH, meshname=mesh.name, material=mat.name,

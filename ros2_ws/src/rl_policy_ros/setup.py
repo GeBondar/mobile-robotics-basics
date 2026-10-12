@@ -29,6 +29,9 @@ setup(
         "console_scripts": [
             "sim_node = rl_policy_ros.sim_node:main",
             "policy_node = rl_policy_ros.policy_node:main",
+            "aruco_detector = rl_policy_ros.aruco_detector:main",
+            "approach_server = rl_policy_ros.approach_server:main",
+            "approach_client = rl_policy_ros.approach_client:main",
         ],
     },
 )
