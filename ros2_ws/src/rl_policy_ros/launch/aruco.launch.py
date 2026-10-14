@@ -37,7 +37,9 @@ def nodes(context):
         launch_arguments={"robot": robot, "world": LaunchConfiguration("world"),
                           "viewer": LaunchConfiguration("viewer"),
                           "rviz": LaunchConfiguration("rviz"),
-                          "camera_rate": "15.0", "cmd_timeout_s": "0.5"}.items())
+                          "camera_rate": "15.0", "cmd_timeout_s": "0.5",
+                          "chase_rate": LaunchConfiguration("chase_rate"),
+                          "lockstep": LaunchConfiguration("lockstep")}.items())
     det = Node(package="rl_policy_ros", executable="aruco_detector", output="screen",
                parameters=[{"marker_size": MARKER_SIZE[robot], "use_sim_time": True}])
     srv = Node(package="rl_policy_ros", executable="approach_server", output="screen",
@@ -51,5 +53,7 @@ def generate_launch_description():
         DeclareLaunchArgument("world", default_value="default"),
         DeclareLaunchArgument("viewer", default_value="true"),
         DeclareLaunchArgument("rviz", default_value="false"),
+        DeclareLaunchArgument("chase_rate", default_value="0.0"),
+        DeclareLaunchArgument("lockstep", default_value="true"),
         OpaqueFunction(function=nodes),
     ])

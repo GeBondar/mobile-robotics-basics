@@ -39,6 +39,8 @@ def nodes(context):
         parameters=[{"robot": robot, "world": world,
                      "viewer": LaunchConfiguration("viewer"),
                      "camera_rate": LaunchConfiguration("camera_rate"),
+                     "chase_rate": LaunchConfiguration("chase_rate"),
+                     "lockstep": LaunchConfiguration("lockstep"),
                      "use_sim_time": True}])
     policy = Node(
         package="rl_policy_ros", executable="policy_node", output="screen",
@@ -60,6 +62,9 @@ def generate_launch_description():
         DeclareLaunchArgument("viewer", default_value="true"),
         DeclareLaunchArgument("camera_rate", default_value="15.0"),
         DeclareLaunchArgument("rviz", default_value="false"),
+        DeclareLaunchArgument("chase_rate", default_value="0.0"),   # >0 — внешняя камера для видео
+        # true — сим ждёт политику каждый такт; false — идёт по настенным часам, как железо
+        DeclareLaunchArgument("lockstep", default_value="true"),
         # teleop_twist_keyboard шлёт команду только при нажатии клавиши, поэтому
         # для ручного управления deadman отключён; автономным нодам — 0.5 с.
         DeclareLaunchArgument("cmd_timeout_s", default_value="1000.0"),

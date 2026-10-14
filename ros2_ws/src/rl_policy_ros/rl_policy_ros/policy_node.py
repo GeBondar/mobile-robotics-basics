@@ -47,9 +47,12 @@ class PolicyNode(Node):
         p("cmd_timeout_s", 0.5)          # /cmd_vel старше — команда в ноль (deadman)
         p("switch_threshold", 0.05)      # |cmd| ниже — auto выбирает stand
         p("stop_on_fall", True)
+        p("carrot", 0.0)                 # дрон: дальность «морковки», м; 0 — по умолчанию контракта
         g = lambda n: self.get_parameter(n).value  # noqa: E731
 
         self.c = make_contract(g("robot"))
+        if g("carrot") > 0 and hasattr(self.c, "CARROT"):
+            self.c.CARROT = float(g("carrot"))
         pdir = Path(g("policy_dir") or Path(get_package_share_directory("rl_policy_ros")) / "policies")
         opts = ort.SessionOptions()
         opts.intra_op_num_threads = 1
@@ -201,7 +204,8 @@ class PolicyNode(Node):
             cmd = Command(head=self.cmd.head, target=self.cmd.target)
         if self.episode_end is not None and now >= self.episode_end:
             self.auto, self.episode_end = True, None
-        if self.auto:
+        if self.auto and "walk" in self.sessions:
+            # у дрона одна политика (hover) — переключать нечего
             moving = abs(cmd.vx) + abs(cmd.vy) + abs(cmd.wz) > self.switch_thr
             want = "walk" if moving or "stand" not in self.sessions else "stand"
             self._switch(want)

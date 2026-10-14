@@ -32,6 +32,9 @@ setup(
             "aruco_detector = rl_policy_ros.aruco_detector:main",
             "approach_server = rl_policy_ros.approach_server:main",
             "approach_client = rl_policy_ros.approach_client:main",
+            "color_detector = rl_policy_ros.color_detector:main",
+            "drone_search = rl_policy_ros.drone_search:main",
+            "video_recorder = rl_policy_ros.video_recorder:main",
         ],
     },
 )

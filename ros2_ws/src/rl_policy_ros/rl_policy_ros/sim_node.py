@@ -19,6 +19,7 @@
 замедляется, а /clock честно показывает время симуляции. Все ноды курса
 запускаются с use_sim_time:=true и поэтому замедляются вместе с ней.
 """
+import math
 import threading
 import time
 from pathlib import Path
@@ -64,8 +65,8 @@ class SimNode(Node):
         p("camera_width", 320)
         p("camera_height", 240)
         p("chase_rate", 0.0)           # Гц внешней камеры для видео; 0 — выключить
-        p("chase_width", 640)
-        p("chase_height", 480)
+        p("chase_width", 480)          # в WSLg рендер программный: 640x480 замедляет сим до x0.2
+        p("chase_height", 360)
         p("markers_rate", 10.0)        # Гц маркеров робота и мира для RViz2; 0 — выключить
         p("real_time_factor", 1.0)
         p("viewer", False)             # окно MuJoCo (нужен дисплей)
@@ -74,6 +75,13 @@ class SimNode(Node):
         # двуногого держит кран при включении. Точечные стопы ЦАПЛИ не дают
         # стоять самой — без подвеса она падает раньше, чем стартует политика.
         p("hold_until_command", True)
+        # Синхронный режим (lockstep): сим считает ровно один такт управления, публикует
+        # состояние и /clock и ждёт ответа политики. Так ROS-контур повторяет среду обучения
+        # шаг в шаг: наблюдение в начале такта, действие на весь такт. В асинхронном режиме
+        # (false) сим идёт по настенным часам, а политика успевает или нет — как на железе.
+        p("lockstep", True)
+        p("control_period", 0.02)      # с, такт политики (у всех трёх роботов 50 Гц)
+        p("lockstep_timeout", 0.5)     # с настенного времени: дольше не ждём ответа
         g = lambda n: self.get_parameter(n).value  # noqa: E731
 
         share = Path(get_package_share_directory("rl_policy_ros"))
@@ -99,13 +107,20 @@ class SimNode(Node):
         self.cam_wh = (g("camera_width"), g("camera_height"))
         self.chase_wh = (g("chase_width"), g("chase_height"))
         self.rtf = float(g("real_time_factor"))
+        self.lockstep = bool(g("lockstep"))
+        self.ctrl_dt = float(g("control_period"))
+        self.lock_timeout = float(g("lockstep_timeout"))
+        self.cmd_seq = 0
+        self.n_lock_timeouts = 0
         self.want_viewer = bool(g("viewer"))
 
-        jnt_ids = [self.model.actuator_trnid[a, 0] for a in self.act_ids]
-        self.qadr = np.array([self.model.jnt_qposadr[j] for j in jnt_ids])
-        self.vadr = np.array([self.model.jnt_dofadr[j] for j in jnt_ids])
         self.joint_names = list(self.profile.joints)
+        # У дрона приводы тянут за сайты (винты), суставов нет — и JointState тоже.
         self.is_joint_robot = self.model.actuator_trntype[self.act_ids[0]] == mujoco.mjtTrn.mjTRN_JOINT
+        if self.is_joint_robot:
+            jnt_ids = [self.model.actuator_trnid[a, 0] for a in self.act_ids]
+            self.qadr = np.array([self.model.jnt_qposadr[j] for j in jnt_ids])
+            self.vadr = np.array([self.model.jnt_dofadr[j] for j in jnt_ids])
         self.pending = None            # последняя пришедшая команда
         self.push = None
 
@@ -149,6 +164,7 @@ class SimNode(Node):
                                     f"{len(self.act_ids)}", throttle_duration_sec=2.0)
             return
         self.pending = np.asarray(msg.data, dtype=np.float64)
+        self.cmd_seq += 1
 
     def _on_push(self, msg):
         self.push = np.array([msg.x, msg.y, msg.z])
@@ -179,6 +195,7 @@ class SimNode(Node):
         wall0, sim0 = time.perf_counter(), d.time
         n_steps, t_log, t_sim_log, lag = 0, time.perf_counter(), d.time, 0.0
         self.n_slips = 0
+        next_b = None                  # следующая граница такта управления (lockstep)
         prof = {"lock": 0.0, "step": 0.0, "pub": 0.0, "loop": 0.0}
         t_loop = time.perf_counter()
         while self.running and rclpy.ok():
@@ -205,12 +222,18 @@ class SimNode(Node):
                 prof["step"] = max(prof["step"], t_d - t_c)
                 n_steps += 1
                 t = d.time
-                if t - t_clock >= self.clock_dt - 1e-9:
+                lock_mode = self.lockstep and not self.holding
+                boundary = False
+                if lock_mode:
+                    if next_b is None:
+                        next_b = (math.floor(t / self.ctrl_dt + 1e-9) + 1) * self.ctrl_dt
+                    boundary = t >= next_b - 1e-9
+                elif t - t_clock >= self.clock_dt - 1e-9:
                     t_clock = t
                     self.pub_clock.publish(Clock(clock=stamp(t)))
-                if t - t_state >= self.state_dt - 1e-9:
+                if boundary or t - t_state >= self.state_dt - 1e-9:
                     t_state = t
-                    with_odom = t - t_odom >= self.odom_dt - 1e-9
+                    with_odom = boundary or t - t_odom >= self.odom_dt - 1e-9
                     if with_odom:
                         t_odom = t
                     self._publish_state(t, with_odom)
@@ -236,6 +259,19 @@ class SimNode(Node):
                 self._publish_image(self.pub_chase, chase_frame, t, "chase")
             if geoms is not None:
                 self.pub_markers.publish(self.geom_markers.build(*geoms, stamp(t)))
+            if boundary:
+                # Состояние уже ушло; время — следом, с паузой в 1 мс, чтобы политика успела
+                # принять состояние раньше, чем сработает её таймер. Затем ждём ответа.
+                seq0 = self.cmd_seq
+                time.sleep(0.001)
+                self.pub_clock.publish(Clock(clock=stamp(t)))
+                w0 = time.perf_counter()
+                while self.cmd_seq == seq0 and self.running:
+                    if time.perf_counter() - w0 > self.lock_timeout:
+                        self.n_lock_timeouts += 1
+                        break
+                    time.sleep(0.0002)
+                next_b += self.ctrl_dt
             # Подгонка под настенные часы. Отстали — НЕ догоняем: догонка прогнала бы
             # физику пачкой в десятки миллисекунд, пока политика отвечает старой командой.
             # Вместо этого якорь переносится, симуляция просто идёт медленнее.
@@ -249,11 +285,11 @@ class SimNode(Node):
             now = time.perf_counter()
             if now - t_log > 10.0:
                 rate = (t - t_sim_log) / (now - t_log)
-                self.get_logger().info(f"симуляция: x{rate:.2f} реального времени, просадок "
-                                       f"{self.n_slips}, худшее отставание {lag * 1e3:.0f} мс | max мс: "
-                                       + ", ".join(f"{k} {v * 1e3:.1f}" for k, v in prof.items()))
+                mode = (f"lockstep, таймаутов ожидания {self.n_lock_timeouts}" if self.lockstep
+                        else f"асинхронно, просадок {self.n_slips}, худшее отставание {lag * 1e3:.0f} мс")
+                self.get_logger().info(f"симуляция: x{rate:.2f} реального времени, {mode}")
                 prof = dict.fromkeys(prof, 0.0)
-                t_log, t_sim_log, lag, self.n_slips = now, t, 0.0, 0
+                t_log, t_sim_log, lag, self.n_slips, self.n_lock_timeouts = now, t, 0.0, 0, 0
         if viewer is not None:
             viewer.close()
 
