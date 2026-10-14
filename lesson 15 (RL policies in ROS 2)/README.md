@@ -205,21 +205,105 @@ Helix — [Figure](https://www.figure.ai/news/helix).*
 
 ---
 
-## Как запустить
+## Как всё запустить
 
-Установка и сборка — [01_quickstart.md](01_quickstart.md). Три сценария:
+Проверено с нуля: Windows 11 + WSL2 Ubuntu 22.04 + ROS 2 Humble — свежий клон с GitHub
+собирается за 15 с, ЦАПЛЯ из этой сборки идёт 0.48 м/с по команде 0.5. На Ubuntu 24.04 +
+Jazzy команды те же, но не проверялись.
+
+### Шаг 1. Пакеты системы
+
+ROS 2 уже стоит ([урок 1](<../lesson 1 (install ROS2 and testing)/README.md>)). Доставляем
+сборщик, клавиатурное управление и просмотр картинок:
 
 ```bash
-ros2 launch rl_policy_ros walk.launch.py rviz:=true
+sudo apt install python3-colcon-common-extensions ros-$ROS_DISTRO-teleop-twist-keyboard ros-$ROS_DISTRO-rqt-image-view git
+```
+
+### Шаг 2. Пакеты Python
+
+MuJoCo, ONNX Runtime и OpenCV — поверх системного Python ROS:
+
+```bash
+pip3 install --user mujoco==3.9.0 onnxruntime==1.23.2 opencv-python-headless==4.10.0.84
+```
+
+На Ubuntu 24.04 добавьте `--break-system-packages` (pip без venv там запрещён).
+
+### Шаг 3. Репозиторий и сборка
+
+```bash
+git clone https://github.com/GeBondar/mobile-robotics-basics.git ~/mobile-robotics-basics
 ```
 
 ```bash
-ros2 launch rl_policy_ros aruco.launch.py rviz:=true
+cd ~/mobile-robotics-basics/ros2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install --packages-select rl_policy_interfaces rl_policy_ros
+```
+
+Ожидается `Summary: 2 packages finished`. Собираем только два пакета урока — остальным пакетам
+workspace нужны свои зависимости.
+
+### Шаг 4. Окружение — в КАЖДОМ новом терминале
+
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash && source ~/mobile-robotics-basics/ros2_ws/install/setup.bash
+```
+
+Без этой строки `ros2 launch rl_policy_ros ...` ответит `Package 'rl_policy_ros' not found`.
+
+### Шаг 5 (только для Microduck). Модель утки
+
+Политики утки лежат в пакете, а модель робота с мешами (23 МБ) — в репозитории авторов:
+
+```bash
+git clone https://github.com/pollen-robotics/microduck_rl.git ~/microduck_rl
 ```
 
 ```bash
-ros2 launch rl_policy_ros drone_search.launch.py rviz:=true
+export MICRODUCK_RL=~/microduck_rl
 ```
+
+`export` нужен в том терминале, где запускается робот; удобно дописать его в `~/.bashrc`.
+
+### Шаг 6. Сценарии
+
+Каждый — два терминала. В первом робот и всё, что над ним; откроется окно MuJoCo
+(`rviz:=true` добавит RViz2). Во втором — то, что задаёт цель.
+
+| | Терминал 1 | Терминал 2 | Что увидите |
+|---|---|---|---|
+| **А.** ЦАПЛЯ с клавиатуры | `ros2 launch rl_policy_ros walk.launch.py rviz:=true` | `ros2 run teleop_twist_keyboard teleop_twist_keyboard` | `i` — вперёд, `,` — назад, `j`/`l` — поворот, `k` — стоп |
+| **Б.** Microduck с клавиатуры | `ros2 launch rl_policy_ros walk.launch.py robot:=microduck` | `ros2 run teleop_twist_keyboard teleop_twist_keyboard` | сначала 5 раз `x` — скорость 0.50 → 0.30 (выше утку не учили, ниже 0.3 она стоит на месте), потом `i` |
+| **В.** ЦАПЛЯ идёт к маркерам | `ros2 launch rl_policy_ros aruco.launch.py rviz:=true` | `ros2 run rl_policy_ros approach_client --ros-args -p use_sim_time:=true -p labels:="['aruco_0','aruco_1','aruco_2','aruco_3']"` | четыре строки `RESULT ... success=True` |
+| **Г.** Дрон ищет красное | `ros2 launch rl_policy_ros drone_search.launch.py rviz:=true` | `ros2 action send_goal /search_target rl_policy_interfaces/action/ApproachTarget "{label: red, stop_distance: 1.0, timeout: 170}" --feedback` | `Goal finished with status: SUCCEEDED` примерно через 50 с времени симуляции |
+
+Остановить сценарий — Ctrl+C в терминале 1. Перед следующим сценарием остановите предыдущий:
+два робота в одном ROS-домене мешают друг другу.
+
+### Полезное в третьем терминале
+
+| Команда | Зачем |
+|---|---|
+| `ros2 topic hz /joint_commands` | частота политики, должно быть около 50 Гц |
+| `ros2 topic echo /policy/obs --once` | вектор, который видит политика |
+| `ros2 run rqt_image_view rqt_image_view /aruco/debug_image` | камера робота с разметкой детектора (`/color/debug_image` — у дрона) |
+| `ros2 service call /sim/reset std_srvs/srv/Trigger` | робот упал — вернуть в стартовую позу |
+| `ros2 service call /set_policy rl_policy_interfaces/srv/SetPolicy "{name: auto}"` | после сброса — снова включить политику |
+| `ros2 topic pub --once /sim/push geometry_msgs/msg/Vector3 "{y: 0.4}"` | толкнуть робота |
+| `ros2 run rl_policy_ros video_recorder --ros-args -p use_sim_time:=true -p out:=/tmp/run.mp4` | записать ролик; сим запускать с `chase_rate:=15.0` |
+
+### Если не работает
+
+| Симптом | Что делать |
+|---|---|
+| `ros2 topic list` пустой или виснет, хотя робот в окне двигается | завис демон `ros2`: `ros2 daemon stop; ros2 daemon start`, проверка в обход — `ros2 topic list --no-daemon` |
+| в RViz2 пусто | запускайте через `rviz:=true` — там уже `use_sim_time`, Fixed Frame `odom` и Best Effort; почему без этого пусто — [01_quickstart.md](01_quickstart.md) |
+| `задайте MICRODUCK_RL` при `robot:=microduck` | не сделан шаг 5 в этом терминале |
+| в логе сима `x0.30 реального времени` | рендер программный (WSL) — это нормально: синхронный режим просто замедляет время, поведение робота то же |
+| окно MuJoCo не открывается | нет дисплея: запускайте с `viewer:=false` и смотрите в RViz2 |
+| робот упал | `/sim/reset`, затем `/set_policy auto` — таблица выше |
+
+Подробно, с ожидаемым выводом и проверками — в статьях ниже.
 
 ## Статьи
 
